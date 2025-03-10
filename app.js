@@ -180,7 +180,9 @@ server.get('/profile/posts', async (req, res) => {
     }
 
     try {
-        const userPosts = await Post.find({ user: req.session.userId }).populate('user');
+        const userPosts = await Post.find({ user: req.session.userId })
+            .populate('user')
+            .populate('comments.user');
 
         const postsWithOwnership = userPosts.map(post => ({
             ...post.toObject(),
@@ -193,6 +195,7 @@ server.get('/profile/posts', async (req, res) => {
         res.status(500).send('Internal Server Error');
     }
 });
+
 
 server.get('/profile/comments', (req, res) => {
     res.render('profile/comments', { layout: false }); 
