@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings</title>
+    <link rel="stylesheet" href="/styles/PageTemplate.css">
+    <link rel="stylesheet" href="/styles/login.css"> <!-- Include the login.css file -->
+</head>
+<body>
+    <main>
+        <section class="login-container"> <!-- Use the same class as the login page -->
+            <h2>Change Username</h2>
+            <p>Current Username: <strong>{{currentUsername}}</strong></p> <!-- Display the current username -->
+            <form id="settings-form" action="/settings" method="POST">
+                <label for="new-username">New Username:</label>
+                <input type="text" id="new-username" name="newUsername" required placeholder="Enter your new username">
+                <button type="submit">Update Username</button>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <p>© 2025 TikTalk Archers</p>
+    </footer>
+</body>
+</html>

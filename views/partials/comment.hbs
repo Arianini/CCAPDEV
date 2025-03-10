@@ -1,0 +1,62 @@
+<div class="comment" id="comment-{{_id}}">
+    <div class="comment-header">
+        <div class="user-icon">
+            <img src="{{user.profilePic}}" alt="{{user.username}}" class="comment-user-icon">
+        </div>
+        <span class="comment-username">{{user.username}}</span>
+
+        <!-- Toggle Menu for Comment Options -->
+        <div class="comment-options">
+            <button class="comment-options-btn" onclick="toggleCommentOptions('{{_id}}')">⋮</button>
+            <div class="comment-options-menu" id="comment-options-{{_id}}" style="display: none;">
+                {{#if (eq user._id ../userId)}}
+                    <!-- If it's the logged-in user, show Edit & Delete -->
+                    <button class="edit-btn" onclick="openEditCommentModal('{{_id}}')">✏ Edit</button>
+                    <button class="delete-btn" onclick="deleteComment('{{../postId}}', '{{_id}}')">🗑 Delete</button>
+                {{else}}
+                    <!-- If it's NOT the logged-in user, show Report -->
+                    <button class="report-btn" onclick="reportComment('{{_id}}')">⚠ Report</button>
+                {{/if}}
+            </div>
+        </div>
+    </div>
+
+    <!-- Comment Content -->
+    <div class="comment-caption">
+        <p id="comment-text-{{_id}}" class="comment-text">{{content}}</p>
+    </div>
+
+    <!-- Edit Comment Modal -->
+    <div class="edit-comment-modal" id="edit-comment-modal-{{_id}}" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Comment</h2>
+                <span class="close-btn" onclick="closeEditCommentModal('{{_id}}')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <textarea id="edit-comment-input-{{_id}}" class="edit-comment-text">{{content}}</textarea>
+                <div class="modal-actions">
+                    <button class="save-btn" onclick="saveEditedComment('{{_id}}')">💾 Save</button>
+                    <button class="cancel-btn" onclick="closeEditCommentModal('{{_id}}')">❌ Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comment Actions -->
+    <div class="comment-actions">
+        <button id="like-btn-comment-{{_id}}" onclick="toggleLike('comment', '{{_id}}')">👍 Like</button>
+        <button id="dislike-btn-comment-{{_id}}')" onclick="toggleDislike('comment', '{{_id}}')">👎 Dislike</button>
+        <button onclick="toggleReplySection('{{_id}}')">💬 Reply</button>
+    </div>
+
+    <div class="reply-section" id="reply-section-{{_id}}" style="display: none;">
+        <div class="add-reply">
+            <textarea id="reply-input-{{_id}}" placeholder="Write a reply..."></textarea>
+            <div class="reply-actions">
+                <button class="reply-btn" onclick="submitReply('{{_id}}')">📨 Reply</button>
+                <button class="cancel-btn" onclick="cancelReply('{{_id}}')">❌ Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>

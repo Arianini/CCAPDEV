@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <link rel="stylesheet" href="styles/login.css">
+</head>
+<body>
+    <main>
+        <section class="login-container"> 
+            <h2>Register</h2>
+            <form id="register-form" action="/register" method="POST">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required placeholder="Enter your username">
+
+                <label for="password">Password:</label>
+                <div class="password-container">
+                    <input type="password" id="password" name="password" required placeholder="Enter a strong password">
+                    <i id="toggle-eye-password" class="fa-solid fa-eye" onclick="togglePasswordVisibility('password')"></i>
+                </div>
+
+                <label for="confirm-password">Confirm Password:</label>
+                <div class="password-container">
+                    <input type="password" id="confirm-password" name="confirm-password" required placeholder="Re-enter your password">
+                    <i id="toggle-eye-confirm-password" class="fa-solid fa-eye" onclick="togglePasswordVisibility('confirm-password')"></i>
+                </div>
+                
+                <p class="password-warning" id="password-warning">⚠ Passwords do not match</p>
+
+                <button type="submit" disabled id="register-btn">Register</button>
+                <p>Already have an account? <a href="/login">Log in here</a></p>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 TikTalk Archers</p>
+    </footer>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', (event) => {
+            let passwordField = document.getElementById('password');
+            let confirmPasswordField = document.getElementById('confirm-password');
+            let eyeIconPassword = document.getElementById('toggle-eye-password');
+            let eyeIconConfirmPassword = document.getElementById('toggle-eye-confirm-password');
+            let warning = document.getElementById('password-warning');
+            let registerBtn = document.getElementById('register-btn');
+    
+            passwordField.type = 'password';
+            confirmPasswordField.type = 'password';
+            eyeIconPassword.classList.remove('fa-eye');
+            eyeIconPassword.classList.add('fa-eye-slash');
+            eyeIconConfirmPassword.classList.remove('fa-eye');
+            eyeIconConfirmPassword.classList.add('fa-eye-slash');
+
+            warning.style.display = 'none';
+            registerBtn.disabled = true;
+        });
+
+        function togglePasswordVisibility(field) {
+            let passwordField = document.getElementById(field);
+            let eyeIcon = document.getElementById('toggle-eye-' + field);
+
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text'; 
+                eyeIcon.classList.remove('fa-eye-slash');  
+                eyeIcon.classList.add('fa-eye');  
+            } else {
+                passwordField.type = 'password'; 
+                eyeIcon.classList.add('fa-eye-slash');  
+            }
+        }
+
+        document.getElementById('register-form').addEventListener('input', function () {
+            let password = document.getElementById('password').value;
+            let confirmPassword = document.getElementById('confirm-password').value;
+            let warning = document.getElementById('password-warning');
+            let registerBtn = document.getElementById('register-btn');
+
+            if (password.length > 0 && confirmPassword.length > 0) {
+                if (password !== confirmPassword) {
+                    warning.style.display = 'block';
+                    registerBtn.disabled = true;
+                } else {
+                    warning.style.display = 'none';
+                    registerBtn.disabled = false;
+                }
+            } else {
+                warning.style.display = 'none';
+                registerBtn.disabled = true;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<div class="post-item" id="post-{{_id}}">
+    <div class="post-header">
+        <div class="user-icon">
+            <img src="{{user.profilePic}}" alt="{{user.username}}'s Profile Picture">
+        </div>
+        <span class="username">{{user.username}}</span>
+        <div class="post-options">
+            <button class="options-btn" onclick="togglePostOptions('{{_id}}')">⋮</button>
+            <div class="options-menu" id="options-menu-{{_id}}" style="display: none;">
+                {{#if isOwner}}
+                    <button onclick="editPost('{{_id}}')">✏ Edit</button>
+                    <button onclick="deletePost('{{_id}}')">🗑 Delete</button>
+                {{else}}
+                    <button onclick="reportPost('{{_id}}')">⚠ Report</button>
+                {{/if}}
+            </div>
+        </div>
+    </div>
+
+    <!-- Caption Section -->
+    <div class="post-caption">
+        <p id="caption-text-{{_id}}" class="caption-text">{{caption}}{{#if edited}} <span class="edited-label">(Edited)</span>{{/if}}</p>
+        <div class="edit-container" id="edit-container-{{_id}}" style="display: none;">
+            <textarea id="edit-caption-{{_id}}" class="edit-caption">{{caption}}</textarea>
+            <div class="edit-buttons">
+                <button class="btn-save" onclick="saveEditPost('{{_id}}')">💾 Save</button>
+                <button class="btn-cancel" onclick="cancelEditPost('{{_id}}')">❌ Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Post Content -->
+    {{#if imageUrl}}
+        <div class="post-content">
+            <img src="{{imageUrl}}" alt="Post image">
+        </div>
+    {{/if}}
+
+    <!-- Post Actions -->
+    <div class="post-actions">
+        <button id="like-btn-post-{{_id}}" onclick="toggleLike('post', '{{_id}}')">👍 Like</button>
+        <button id="dislike-btn-post-{{_id}}" onclick="toggleDislike('post', '{{_id}}')">👎 Dislike</button>
+        <button id="comment-btn-{{_id}}" onclick="toggleComments('{{_id}}')">💬 Comment</button>
+    </div>
+
+    <!-- Comments Section -->
+<div class="comments-section" id="comments-{{_id}}" style="display: none;">
+    <!-- Add Comment Section -->
+    <div class="add-comment">
+        <textarea id="comment-input-{{_id}}" placeholder="Add a comment..."></textarea>
+        <button onclick="addComment('{{_id}}')">Post Comment</button>
+    </div>
+
+    <!-- Display Comments -->
+    {{#each comments}}
+        {{> comment postId=../_id}}
+    {{/each}}
+</div>
+
+</div>
