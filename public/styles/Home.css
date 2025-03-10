@@ -1,0 +1,222 @@
+
+html, body {
+    width: 100%;
+    overflow-x: hidden; 
+}
+
+
+.bgImg {
+    background-image: url('https://insanelygoodrecipes.com/wp-content/uploads/2020/07/Cup-Of-Creamy-Coffee.png'); 
+    background-size: cover;  
+    background-position: center; 
+    background-repeat: no-repeat; 
+    width: 100vw;  
+    min-height: 50vh;
+}
+
+.container {
+    width: 100vw;  
+    height: 90vh; 
+    overflow-y: auto;
+    overflow-x: hidden; 
+    padding: 10px; 
+    box-sizing: border-box; 
+}
+
+h1 {
+    color: white;
+    margin-bottom: 20px;
+}
+
+.community-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.community-list a {
+    display: block;
+    background: #007BFF;
+    color: white;
+    text-decoration: none;
+    padding: 12px;
+    border-radius: 5px;
+}
+
+.community-list a:hover {
+    background: #0056b3;
+}
+
+.icon-btn {
+    color: white;
+    transition: color 0.3s ease;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    transition: 0.3s;
+}
+
+.icon-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+}
+
+/* Modal Overlay - Fullscreen Blur */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Modal Content */
+.modal-content {
+    background: #242526;
+    width: 500px;
+    border-radius: 10px;
+    padding: 15px;
+    color: white;
+    text-align: left;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Modal Header */
+.modal-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    border-bottom: 1px solid #3a3b3c;
+    padding-bottom: 10px;
+}
+
+.modal-header .close {
+    position: absolute;
+    right: 15px;
+    font-size: 24px;
+    cursor: pointer;
+}
+/* Close Button */
+.close {
+    font-size: 24px;
+    cursor: pointer;
+    color: white;
+}
+
+.close:hover {
+    color: red;
+}
+
+/* Profile & Input Box */
+.modal-body {
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+}
+
+.modal-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal-profile img {
+    width: 50px; 
+    height: 50px; 
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.modal-body textarea {
+    background: #3a3b3c;
+    border: none;
+    color: white;
+    font-size: 16px;
+    resize: none;
+    height: 80px;
+    padding: 5px;
+    border-radius: 8px;
+    margin-top: 10px;
+    width: 100%;
+}
+
+/* Emoji Picker */
+.emoji-picker {
+    display: flex;
+    gap: 5px;
+    padding: 10px 0;
+}
+
+.emoji-picker span {
+    cursor: pointer;
+    font-size: 20px;
+    padding: 5px;
+    border-radius: 5px;
+    transition: background 0.2s ease-in-out;
+}
+
+.emoji-picker span:hover {
+    background: #3a3b3c;
+}
+
+/* Post Button */
+.post-btn {
+    width: 100%;
+    background: #1877F2;
+    color: white;
+    border: none;
+    padding: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.post-btn:hover {
+    background: #165dbb;
+}
+
+/* Fade In Animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.explore-container {
+    padding: 20px;
+    background-color: #1f1f1f;
+    border-radius: 10px;
+}
+
+.explore-container h2 {
+    color: white;
+    text-align: center;
+}
+
+.post-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.post-item {
+    background: #222;
+    padding: 15px;
+    border-radius: 10px;
+}
+
+.post-content img {
+    width: 100%;
+    border-radius: 10px;
+}
