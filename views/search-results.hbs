@@ -1,0 +1,29 @@
+<link rel="stylesheet" href="styles/PostTemplate.css">
+<h2>Search Results for "{{query}}"</h2>
+<div class="body-container">
+    <div class="left-block">
+    </div>
+    <div class="middle-block">
+        <div class="post-feed">
+            {{#if posts.length}}
+                <ul>
+                    {{#each posts}}
+                        <li>
+                            <h3>{{this.username}}</h3>
+                            <p>{{this.caption}}</p>
+                            {{#if this.imageUrl}}
+                                <img src="{{this.imageUrl}}" alt="Post image">
+                            {{/if}}
+                        </li>
+                    {{/each}}
+                </ul>
+            {{else}}
+                <p>No results found.</p>
+            {{/if}}
+
+            <a href="/">Go Back</a>
+        </div>
+    </div>
+</div>
+
+

@@ -1,0 +1,52 @@
+<div class="comment" id="comment-{{_id}}">
+    <div class="comment-header">
+        <div class="user-icon">
+            <img src="{{user.profilePic}}" alt="{{user.username}}" class="comment-user-icon">
+        </div>
+        <span class="comment-username">{{user.username}}</span>
+
+        <!-- Toggle Menu for Comment Options -->
+        <div class="comment-options">
+            <button class="options-btn" onclick="toggleCommentOptions('{{_id}}')">⋮</button>
+            <div class="options-menu" id="comment-options-{{_id}}" style="display: none;">
+                {{#if (eq user._id ../userId)}}
+                    <!-- If it's the logged-in user, show Edit & Delete -->
+                    <button onclick="editComment('{{../_id}}', '{{_id}}')">✏ Edit</button>
+                    <button onclick="deleteComment('{{../_id}}', '{{_id}}')">🗑 Delete</button>
+                {{else}}
+                    <!-- If it's NOT the logged-in user, show Report -->
+                    <button onclick="reportComment('{{_id}}')">⚠ Report</button>
+                {{/if}}
+            </div>
+        </div>
+    </div>
+
+    <!-- Comment Content -->
+    <div class="comment-caption">
+        <p id="comment-text-{{_id}}" class="comment-text">{{content}}</p>
+
+        <!-- Editable Textarea for Editing Comments -->
+        <div class="edit-comment-container" id="edit-comment-container-{{_id}}" style="display: none;">
+            <textarea id="edit-comment-{{_id}}" class="edit-comment">{{content}}</textarea>
+            <div class="edit-buttons">
+                <button class="btn-save" onclick="saveEditComment('{{../_id}}', '{{_id}}')">💾 Save</button>
+                <button class="btn-cancel" onclick="cancelEditComment('{{_id}}')">❌ Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comment Actions -->
+    <div class="comment-actions">
+        <button id="like-btn-comment-{{_id}}" onclick="toggleLike('comment', '{{_id}}')">👍 Like</button>
+        <button id="dislike-btn-comment-{{_id}}" onclick="toggleDislike('comment', '{{_id}}')">👎 Dislike</button>
+        <button onclick="replyToComment('{{_id}}')">💬 Reply</button>
+    </div>
+
+    <!-- Reply Section -->
+    <div class="reply-section" id="reply-{{_id}}" style="display: none;">
+        <div class="add-reply">
+            <textarea id="reply-input-{{_id}}" placeholder="Write a reply..."></textarea>
+            <button onclick="addReply('{{_id}}')">Post Reply</button>
+        </div>
+    </div>
+</div>

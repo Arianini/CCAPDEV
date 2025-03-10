@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="styles/login.css">
+</head>
+<body>
+    <main>
+        <section class="login-container">
+            <h2>Login</h2>
+            <form id="login-form" action="/login" method="POST">
+            {{#if errorMessage}}
+                <p style="color: red;">{{errorMessage}}</p>
+            {{/if}}
+
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required placeholder="Enter your username">
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required placeholder="Enter your password">
+
+            <div class="remember-me">
+                <input type="checkbox" id="remember" name="remember">
+                <label for="remember">Remember me</label>   
+            </div>
+
+            <button type="submit">Login</button>
+            <p>Don't have an account? <a href="/register">Sign up here</a></p>
+        </form>
+
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 TikTalk Archers</p>
+    </footer>
+</body>
+</html>

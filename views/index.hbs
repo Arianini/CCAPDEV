@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CCAPDEV MCO1</title>
+    <link rel="stylesheet" href="styles/PostTemplate.css">
+
+    <script>
+        function toggleLike(type, id) {
+            let likeBtn = document.getElementById(`like-btn-${type}-${id}`);
+            let dislikeBtn = document.getElementById(`dislike-btn-${type}-${id}`);
+
+            if (likeBtn.classList.contains("active")) {
+                likeBtn.classList.remove("active");
+                likeBtn.style.background = "#444";  
+            } else {
+                likeBtn.classList.add("active");
+                likeBtn.style.background = "#007BFF"; 
+                dislikeBtn.classList.remove("active");
+                dislikeBtn.style.background = "#444"; 
+            }
+        }
+
+        function toggleDislike(type, id) {
+            let dislikeBtn = document.getElementById(`dislike-btn-${type}-${id}`);
+            let likeBtn = document.getElementById(`like-btn-${type}-${id}`);
+
+            if (dislikeBtn.classList.contains("active")) {
+                dislikeBtn.classList.remove("active");
+                dislikeBtn.style.background = "#444"; 
+            } else {
+                dislikeBtn.classList.add("active");
+                dislikeBtn.style.background = "#FF3B30"; 
+                likeBtn.classList.remove("active");
+                likeBtn.style.background = "#444"; 
+            }
+        }
+
+        function togglePostOptions(postId) {
+            const menu = document.getElementById(`options-menu-${postId}`);
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function editPost(postId) {
+            alert(`Editing post ${postId}`);
+        }
+                
+        function deletePost(postId) {
+            alert(`Deleting post ${postId}`);
+        }
+        
+        function reportPost(postId) {
+            alert(`Reporting post ${postId}`);
+        }
+    </script>
+</head>
+<body>
+    <div class="body-container">
+        <div class="left-block">
+            <h1>Find Your Community!</h1>
+            <div class="community-list">
+                <a href="#">Landscapes</a>
+                <a href="#">Food</a>
+                <a href="#">Artwork</a>
+                <a href="#">Travel</a>
+                <a href="#">Animals</a>
+            </div>   
+        </div>
+
+        <div class="middle-block">
+            <div class="post-feed">
+                <h2>Recent Posts</h2>
+                {{#each posts}}
+                    {{> post}}
+                {{/each}}
+            </div>
+        </div>
+        <!-- Create Post Modal -->
+        <div id="create-post-modal" class="modal">
+            <div class="modal-content">
+                <!-- Modal Header -->
+                <div class="modal-header">
+                 <h2>Create a Post</h2>
+                    <span class="close">&times;</span>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body">
+                    <div class="modal-profile">
+                        <img src="{{user.profilePic}}" alt="Profile Picture" class="profile-picture">
+                        <span>{{user.username}}</span>
+                    </div>
+                    <textarea id="post-caption" placeholder="What's on your mind?"></textarea>
+
+                    <!-- Emoji Picker -->
+                    <div class="emoji-picker">
+                        <span onclick="addEmoji('😀')">😀</span>
+                        <span onclick="addEmoji('❤️')">❤️</span>
+                        <span onclick="addEmoji('😂')">😂</span>
+                        <span onclick="addEmoji('😢')">😢</span>
+                        <span onclick="addEmoji('😡')">😡</span>
+                    </div>
+
+                    <!-- Image Upload Input -->
+                    <label for="post-image" class="custom-upload-btn">📷 Upload Image</label>
+                    <input type="file" id="post-image" accept="image/*" onchange="previewImage(event)" style="display: none;">
+
+                    <!-- Image Preview -->
+                    <div id="image-preview-container" style="display: none; max-height: 250px; overflow-y: auto;">
+                        <img id="image-preview" src="" alt="Image Preview" style="max-width: 100%; display: block;">
+                    </div>
+                    <!-- Post Button -->
+                    <button class="post-btn" onclick="submitPost()">Post</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+            document.addEventListener("DOMContentLoaded", function () {
+            let createPostBtn = document.getElementById("create-post-btn");
+            let modal = document.getElementById("create-post-modal");
+            let closeBtn = document.querySelector(".close");
+
+            modal.style.display = "none";
+
+            if (createPostBtn && modal) {
+                createPostBtn.addEventListener("click", function () {
+                    modal.style.display = "flex";
+                });
+            }
+
+            if (closeBtn) {
+                closeBtn.addEventListener("click", function () {
+                    modal.style.display = "none";
+                });
+            }
+
+            window.addEventListener("click", function (event) {
+                if (event.target === modal) {
+                    modal.style.display = "none";
+                }
+            });
+        });
+
+        /* Emoji Picker Function */
+        function addEmoji(emoji) {
+            let textarea = document.querySelector(".modal-body textarea");
+            textarea.value += emoji;
+        }
+
+        
+        function loadPage(page) {
+            fetch(page)
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById("main-content").innerHTML = data;
+                })
+                .catch(error => console.log("Error loading page:", error));
+        }
+
+        function toggleComments(postId) {
+            console.log("Toggling comments for:", postId); 
+
+            let commentSection = document.getElementById(`comments-${postId}`);
+
+            if (commentSection) {
+                console.log("Comment section found:", commentSection);
+
+                if (commentSection.style.display === "none" || commentSection.style.display === "") {
+                    commentSection.style.display = "block"; 
+                } else {
+                    commentSection.style.display = "none"; 
+                }
+
+                console.log("New display state:", commentSection.style.display); 
+            } else {
+                console.error("Comment section not found for post:", postId);
+            }
+        }
+
+        //added for delete comment
+        function toggleCommentOptions(commentId) {
+            console.log("Toggling menu for comment ID:", commentId);
+            
+            const menu = document.getElementById(`comment-options-${commentId}`);
+
+            if (menu) {
+                menu.style.display = menu.style.display === "none" || menu.style.display === "" ? "block" : "none";
+            } else {
+                console.error(`Comment options menu NOT found for comment ID: ${commentId}`);
+                console.log("Check if comment-options-" + commentId + " exists in HTML.");
+            }
+        }
+
+        function addComment(postId) {
+            let commentInput = document.querySelector(`#comments-${postId} textarea`);
+
+            if (!commentInput) {
+                console.error(`🚨 Error: Comment input field not found for post ${postId}`);
+                alert("Error: Comment box is missing.");
+                return;
+            }
+            let commentText = commentInput.value.trim();
+
+            if (!commentText) {
+                alert("⚠ Comment cannot be empty!");
+                return;
+            }
+            fetch(`/add-comment/${postId}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ commentText: commentText }) 
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    commentInput.value = "";
+                    location.reload();
+                } else {
+                    alert("⚠ Failed to add comment.");
+                }
+            })
+            .catch(error => console.error("❌ Error adding comment:", error));
+        }
+        
+        function editComment(commentId) {
+            alert(`Editing comment ${commentId}`);
+        }
+        
+        function deleteComment(postId, commentId) {
+            if (!postId) {
+                console.error("🚨 Error: postId is missing!");
+                alert("Error: Unable to delete comment because post ID is missing.");
+                return;
+            }
+
+            console.log(`🗑️ Deleting comment: ${commentId} from post: ${postId}`);
+
+            fetch(`/delete-comment/${postId}/${commentId}`, {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById(`comment-${commentId}`).remove();
+                    alert("✅ Comment deleted successfully.");
+                } else {
+                    alert("❌ Error: " + data.error);
+                }
+            })
+            .catch(error => {
+                console.error("Error deleting comment:", error);
+            });
+        }
+        
+        function reportComment(commentId) {
+            alert(`Reporting comment ${commentId}`);
+        }
+    </script>
+
+    <script>
+        document.getElementById("profile-btn").addEventListener("click", function() {
+            window.location.href = "/Profile"; // Redirect to profile page
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+        let menuBtn = document.getElementById("menu-btn");
+        let menuDropdown = document.getElementById("menu-dropdown");
+
+        menuBtn.addEventListener("click", function (event) {
+            event.stopPropagation(); 
+            menuDropdown.style.display = menuDropdown.style.display === "block" ? "none" : "block";
+        });
+
+        document.addEventListener("click", function (event) {
+            if (!menuDropdown.contains(event.target) && event.target !== menuBtn) {
+                menuDropdown.style.display = "none";
+            }
+        });
+
+    });
+    </script>
+    <script src="/script.js"></script>
+</body>
+</html>

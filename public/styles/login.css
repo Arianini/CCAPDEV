@@ -1,0 +1,112 @@
+main {
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;   
+}
+
+.login-container {
+    background: #222;
+    padding: 50px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    width: 500px;
+    text-align: center;
+}
+
+.login-container h2 {
+    margin-bottom: 15px;
+}
+
+.login-container input {
+    width: 90%;
+    padding: 10px;
+    margin-top: 8px;
+    margin-bottom: 15px;
+    border-radius: 15px;
+    border: none;
+    background: #333;
+    color: white;
+}
+
+.login-container input::placeholder {
+    color: #bbb;
+}
+
+.remember-me {
+    display: flex;
+    align-items: center;
+    gap: 8px; 
+    font-size: 14px;
+    justify-content: flex-start;
+    margin-top: 8px;
+    color: white;
+}
+
+.remember-me input {
+    width: 16px;
+    height: 16px;
+    accent-color: #4aa3ff; 
+    cursor: pointer;
+}
+
+.login-container button {
+    width: 100%;
+    padding: 12px;
+    background: #444;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.login-container button:hover {
+    background: #666;
+}
+
+.login-container p {
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.login-container a {
+    color: #4aa3ff;
+    text-decoration: none;
+}
+
+.login-container a:hover {
+    text-decoration: underline;
+}
+
+.password-container {
+    position: relative;
+    width: 100%;
+}
+
+.password-container input {
+    width: 90%;
+    padding: 10px;
+    margin-top: 8px;
+    margin-bottom: 15px;
+    border-radius: 15px;
+    border: none;
+    background: #333;
+    color: white;
+}
+
+.password-container i {
+    position: absolute;
+    right: 25px;  
+    top: 45%;  
+    transform: translateY(-50%);  
+    cursor: pointer;
+    color: #fff;  
+    font-size: 18px;
+}
+
+.fa-eye, .fa-eye-slash {
+    font-size: 18px;
+}
