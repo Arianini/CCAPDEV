@@ -10,31 +10,56 @@
     <main>
         <section class="login-container">
             <h2>Login</h2>
-            <form id="login-form" action="/login" method="POST">
-            {{#if errorMessage}}
-                <p style="color: red;">{{errorMessage}}</p>
-            {{/if}}
+            <form id="login-form">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required placeholder="Enter your username">
 
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required placeholder="Enter your username">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required placeholder="Enter your password">
 
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required placeholder="Enter your password">
+                <div class="remember-me">
+                    <input type="checkbox" id="remember" name="remember">
+                    <label for="remember">Remember me</label>
+                </div>
 
-            <div class="remember-me">
-                <input type="checkbox" id="remember" name="remember">
-                <label for="remember">Remember me</label>   
-            </div>
-
-            <button type="submit">Login</button>
-            <p>Don't have an account? <a href="/register">Sign up here</a></p>
-        </form>
-
+                <button type="submit">Login</button>
+                <p class="error-message" id="login-error" style="color: red;"></p>
+                <p>Don't have an account? <a href="/register">Sign up here</a></p>
+            </form>
         </section>
     </main>
 
     <footer>
         <p>&copy; 2025 TikTalk Archers</p>
     </footer>
+
+    <script>
+        document.getElementById("login-form").addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+
+            try {
+                const res = await fetch("/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const text = await res.text();
+
+                if (res.ok) {
+                    window.location.href = "/profile";
+                } else {
+                    document.getElementById("login-error").innerText = text;
+                }
+            } catch (error) {
+                document.getElementById("login-error").innerText = "An error occurred. Please try again.";
+            }
+        });
+    </script>
 </body>
 </html>

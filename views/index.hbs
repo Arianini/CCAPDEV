@@ -7,35 +7,31 @@
     <link rel="stylesheet" href="styles/PostTemplate.css">
 
     <script>
-        function toggleLike(type, id) {
-            let likeBtn = document.getElementById(`like-btn-${type}-${id}`);
-            let dislikeBtn = document.getElementById(`dislike-btn-${type}-${id}`);
-
-            if (likeBtn.classList.contains("active")) {
-                likeBtn.classList.remove("active");
-                likeBtn.style.background = "#444";  
-            } else {
-                likeBtn.classList.add("active");
-                likeBtn.style.background = "#007BFF"; 
-                dislikeBtn.classList.remove("active");
-                dislikeBtn.style.background = "#444"; 
-            }
+        /*
+        function toggleLike(postId) {
+            fetch(`/like/${postId}`, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload(); // or update UI manually
+                    } else {
+                        alert("Failed to like post.");
+                    }
+                });
         }
 
-        function toggleDislike(type, id) {
-            let dislikeBtn = document.getElementById(`dislike-btn-${type}-${id}`);
-            let likeBtn = document.getElementById(`like-btn-${type}-${id}`);
-
-            if (dislikeBtn.classList.contains("active")) {
-                dislikeBtn.classList.remove("active");
-                dislikeBtn.style.background = "#444"; 
-            } else {
-                dislikeBtn.classList.add("active");
-                dislikeBtn.style.background = "#FF3B30"; 
-                likeBtn.classList.remove("active");
-                likeBtn.style.background = "#444"; 
-            }
+        function toggleDislike(postId) {
+            fetch(`/dislike/${postId}`, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload(); // or update UI manually
+                    } else {
+                        alert("Failed to dislike post.");
+                    }
+                });
         }
+        */
 
         function togglePostOptions(postId) {
             const menu = document.getElementById(`options-menu-${postId}`);
@@ -72,7 +68,7 @@
             <div class="post-feed">
                 <h2>Recent Posts</h2>
                 {{#each posts}}
-                    {{> post}}
+                    {{> post this userProfile=userProfile}}
                 {{/each}}
             </div>
         </div>
@@ -88,8 +84,8 @@
                 <!-- Modal Body -->
                 <div class="modal-body">
                     <div class="modal-profile">
-                        <img src="{{user.profilePic}}" alt="Profile Picture" class="profile-picture">
-                        <span>{{user.username}}</span>
+                        <img src="{{userProfile.profilePic}}" alt="Profile Picture" class="profile-picture">
+                        <span>{{userProfile.username}}</span>
                     </div>
                     <textarea id="post-caption" placeholder="What's on your mind?"></textarea>
 
@@ -237,6 +233,7 @@
                             postId: postId,
                             commentId: data.comment._id,
                             username: data.comment.username,
+                            profilePic: data.comment.profilePic,
                             content: data.comment.content
                         })
                     })

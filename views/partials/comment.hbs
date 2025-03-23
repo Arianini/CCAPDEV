@@ -45,8 +45,14 @@
 
     <!-- Comment Actions -->
     <div class="comment-actions">
-        <button id="like-btn-comment-{{_id}}" onclick="toggleLike('comment', '{{_id}}')">👍 Like</button>
-        <button id="dislike-btn-comment-{{_id}}')" onclick="toggleDislike('comment', '{{_id}}')">👎 Dislike</button>
+        <button id="like-btn-comment-{{_id}}"
+            onclick="toggleLikeComment('{{postId}}', '{{_id}}')">👍 Like</button>
+        <span class="like-count" id="like-count-{{_id}}">{{likes.length}}</span>
+
+        <button id="dislike-btn-comment-{{_id}}"
+            onclick="toggleDislikeComment('{{postId}}', '{{_id}}')" >👎 Dislike</button>
+        <span class="dislike-count" id="dislike-count-{{_id}}">{{dislikes.length}}</span>
+
         <button onclick="toggleReplySection('{{_id}}')">💬 Reply</button>
     </div>
 

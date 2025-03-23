@@ -1,4 +1,12 @@
-<div class="content-section">
-    <h1>Likes</h1>
-    <p>No liked items yet.</p>
+<div class="user-posts">
+    <h2>Liked Posts</h2>
+    {{#if posts.length}}
+        <div class="post-feed">
+            {{#each posts}}
+                {{> post userProfile=../userProfile}}
+            {{/each}}
+        </div>
+    {{else}}
+        <p class="no-posts">No liked posts yet.</p>
+    {{/if}}
 </div>

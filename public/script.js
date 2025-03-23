@@ -126,7 +126,7 @@ document.getElementById("submit-post-btn").addEventListener("click", async funct
     const imageInput = document.getElementById("post-image").files[0];
 
     if (!caption && !imageInput) {
-        alert("Post must have either text or an image.");
+        alert("Post must contain either a caption or an image.");
         return;
     }
 
@@ -136,15 +136,22 @@ document.getElementById("submit-post-btn").addEventListener("click", async funct
         formData.append("image", imageInput);
     }
 
-    const response = await fetch("/create-post", {
-        method: "POST",
-        body: formData
-    });
+    try {
+        const response = await fetch("/create-post", {
+            method: "POST",
+            body: formData
+        });
 
-    if (response.ok) {
-        location.reload();
-    } else {
-        alert("Failed to create post.");
+        const result = await response.json();
+
+        if (result.success) {
+            location.reload();
+        } else {
+            alert(result.error || "Failed to create post.");
+        }
+    } catch (error) {
+        console.error("Error creating post:", error);
+        alert("An error occurred while creating the post.");
     }
 });
 
@@ -197,4 +204,207 @@ async function saveProfilePic() {
 // Cancel Profile Picture Update
 function cancelProfilePic() {
     document.getElementById("profile-pic-menu").style.display = "none";
+}
+
+async function toggleLike(type, postId) {
+    try {
+        const response = await fetch(`/like/${postId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" }
+        });
+        const result = await response.json();
+        if (!result.success) {
+            alert("Failed to like post.");
+        } else {
+            updateButtonStates(postId, result.liked, false);
+            // Update counts on the page
+            const likeCountSpan = document.querySelector(`#like-btn-post-${postId} + .like-count`);
+            const dislikeCountSpan = document.querySelector(`#dislike-btn-post-${postId} + .dislike-count`);
+            if (likeCountSpan) {
+                likeCountSpan.innerText = result.likesCount;
+            }
+            if (dislikeCountSpan) {
+                dislikeCountSpan.innerText = result.dislikesCount;
+            }
+        }
+    } catch (err) {
+        console.error("Like error:", err);
+        alert("Failed to like post.");
+    }
+}
+
+async function toggleDislike(type, postId) {
+    try {
+        const response = await fetch(`/dislike/${postId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" }
+        });
+        const result = await response.json();
+        if (!result.success) {
+            alert("Failed to dislike post.");
+        } else {
+            updateButtonStates(postId, false, result.disliked);
+            const likeCountSpan = document.querySelector(`#like-btn-post-${postId} + .like-count`);
+            const dislikeCountSpan = document.querySelector(`#dislike-btn-post-${postId} + .dislike-count`);
+            if (likeCountSpan) {
+                likeCountSpan.innerText = result.likesCount;
+            }
+            if (dislikeCountSpan) {
+                dislikeCountSpan.innerText = result.dislikesCount;
+            }
+        }
+    } catch (err) {
+        console.error("Dislike error:", err);
+        alert("Failed to dislike post.");
+    }
+}
+
+function updateButtonStates(postId, liked, disliked) {
+    const likeBtn = document.getElementById(`like-btn-post-${postId}`);
+    const dislikeBtn = document.getElementById(`dislike-btn-post-${postId}`);
+
+    if (likeBtn) {
+        if (liked) {
+            likeBtn.classList.add('active');
+            likeBtn.style.background = "#007BFF";
+        } else {
+            likeBtn.classList.remove('active');
+            likeBtn.style.background = "#444";
+        }
+    }
+
+    if (dislikeBtn) {
+        if (disliked) {
+            dislikeBtn.classList.add('active');
+            dislikeBtn.style.background = "#FF3B30";
+        } else {
+            dislikeBtn.classList.remove('active');
+            dislikeBtn.style.background = "#444";
+        }
+    }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll("[id^='like-btn-post-']").forEach(btn => {
+        if (btn.classList.contains("active")) {
+            btn.style.background = "#007BFF";
+        }
+    });
+
+    document.querySelectorAll("[id^='dislike-btn-post-']").forEach(btn => {
+        if (btn.classList.contains("active")) {
+            btn.style.background = "#FF3B30";
+        }
+    });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+    const likedPosts = JSON.parse(localStorage.getItem('likedPosts')) || [];
+    likedPosts.forEach(postId => {
+        const likeBtn = document.getElementById(`like-btn-post-${postId}`);
+        if (likeBtn) {
+            likeBtn.classList.add('active');
+            likeBtn.style.background = "#007BFF";
+        }
+    });
+});
+async function toggleLikeComment(postId, commentId) {
+    try {
+        const response = await fetch(`/like-comment/${postId}/${commentId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" }
+        });
+
+        const result = await response.json();
+        if (!result.success) {
+            alert("Failed to like comment.");
+        } else {
+            // Update counts
+            document.querySelector(`#like-count-${commentId}`).textContent = result.likesCount;
+            document.querySelector(`#dislike-count-${commentId}`).textContent = result.dislikesCount;
+
+            // Update button UI (optional)
+            const likeBtn = document.getElementById(`like-btn-comment-${commentId}`);
+            const dislikeBtn = document.getElementById(`dislike-btn-comment-${commentId}`);
+
+            if (result.liked) {
+                likeBtn.classList.add("active");
+                dislikeBtn.classList.remove("active");
+            } else {
+                likeBtn.classList.remove("active");
+            }
+        }
+    } catch (error) {
+        console.error("❌ Error liking comment:", error);
+        alert("Failed to like comment.");
+    }
+}
+
+async function toggleDislikeComment(postId, commentId) {
+    try {
+        const response = await fetch(`/dislike-comment/${postId}/${commentId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" }
+        });
+
+        const result = await response.json();
+        if (!result.success) {
+            alert("Failed to dislike comment.");
+        } else {
+            // Update counts
+            document.querySelector(`#like-count-${commentId}`).textContent = result.likesCount;
+            document.querySelector(`#dislike-count-${commentId}`).textContent = result.dislikesCount;
+
+            // Update button UI
+            const likeBtn = document.getElementById(`like-btn-comment-${commentId}`);
+            const dislikeBtn = document.getElementById(`dislike-btn-comment-${commentId}`);
+
+            if (result.disliked) {
+                dislikeBtn.classList.add("active");
+                likeBtn.classList.remove("active");
+            } else {
+                dislikeBtn.classList.remove("active");
+            }
+        }
+    } catch (error) {
+        console.error("❌ Error disliking comment:", error);
+        alert("Failed to dislike comment.");
+    }
+}
+
+async function addComment(postId) {
+    const textarea = document.getElementById(`comment-input-${postId}`);
+    const commentText = textarea.value.trim();
+
+    if (!commentText) {
+        alert("Comment cannot be empty!");
+        return;
+    }
+
+    try {
+        const response = await fetch(`/add-comment/${postId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ commentText })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            const commentsSection = document.getElementById(`comments-${postId}`);
+            commentsSection.insertAdjacentHTML("beforeend", result.html);
+            // Update comment count
+            const commentCountSpan = document.getElementById(`comment-count-${postId}`);
+            if (commentCountSpan) {
+                const currentCount = parseInt(commentCountSpan.textContent) || 0;
+                commentCountSpan.textContent = currentCount + 1;
+            }
+
+            textarea.value = "";
+        } else {
+            alert("Failed to add comment.");
+        }
+    } catch (error) {
+        console.error("❌ Error adding comment:", error);
+        alert("An error occurred while adding the comment.");
+    }
 }

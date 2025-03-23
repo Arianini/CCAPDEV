@@ -27,18 +27,20 @@ const User = mongoose.model('User', userSchema);
 
 const postSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    caption: { type: String, required: true },
-    imageUrl: { type: String, required: true },
-
+    caption: { type: String, required: false, default: "" },
+    imageUrl: { type: String, required: false, default: '' },
     comments: [
         {
             _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
             user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-            content: { type: String, required: true }
+            content: { type: String, required: true },
+            likes: { type: [mongoose.Schema.Types.ObjectId], ref: 'User', default: [] },
+            dislikes: { type: [mongoose.Schema.Types.ObjectId], ref: 'User', default: [] },
         }
     ],
-
-    createdAt: { type: Date, default: Date.now }
+    createdAt: { type: Date, default: Date.now },
+    likesCount: { type: Number, default: 0 },
+    dislikesCount: { type: Number, default: 0 }
 });
 
 const Post = mongoose.model('Post', postSchema);
@@ -177,8 +179,10 @@ async function seedPosts() {
             caption: post.caption,
             imageUrl: post.imageUrl,
             comments: post.comments.map(comment => ({
-                user: userMap[comment.username] || null, // Convert comment usernames to ObjectId
-                content: comment.content
+                user: userMap[comment.username] || null,
+                content: comment.content,
+                likes: [],
+                dislikes: []
             }))
         }));
 

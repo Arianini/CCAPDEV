@@ -174,9 +174,20 @@ nav a {
 
 .post-actions {
     display: flex;
-    justify-content: space-around;
+    justify-content: center; 
+    align-items: center;
+    gap: 5px; 
     margin-top: 10px;
 }
+.post-actions .action-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;        
+    padding: 0;
+    margin: 0;
+    flex: 1;         
+  }
 
 .post-actions button {
     background-color: #444;
@@ -906,4 +917,28 @@ footer {
     max-width: 100%;
     max-height: 200px;
     border-radius: 5px;
+}
+
+.action-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.count {
+    background: #333;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    color: #ccc;
+}
+
+/* Comment Like/Dislike Count Styling */
+.comment-actions .like-count,
+.comment-actions .dislike-count {
+    background: #333;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    color: #ccc;
 }

@@ -1,4 +1,12 @@
-<div class="content-section">
-    <h1>Dislikes</h1>
-    <p>No disliked items yet.</p>
+<div class="user-posts">
+    <h2>Disliked Posts</h2>
+    {{#if posts.length}}
+        <div class="post-feed">
+            {{#each posts}}
+                {{> post userProfile=../userProfile}}
+            {{/each}}
+        </div>
+    {{else}}
+        <p class="no-posts">No disliked posts yet.</p>
+    {{/if}}
 </div>

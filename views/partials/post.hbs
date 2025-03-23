@@ -38,9 +38,24 @@
 
     <!-- Post Actions -->
     <div class="post-actions">
-        <button id="like-btn-post-{{_id}}" onclick="toggleLike('post', '{{_id}}')">👍 Like</button>
-        <button id="dislike-btn-post-{{_id}}" onclick="toggleDislike('post', '{{_id}}')">👎 Dislike</button>
-        <button id="comment-btn-{{_id}}" onclick="toggleComments('{{_id}}')">💬 Comment</button>
+        <div class="action-container">
+            <button id="like-btn-post-{{_id}}" 
+                class="{{#includes ../userProfile.likes _id}}active{{/includes}}" 
+                onclick="toggleLike('post', '{{_id}}')">👍 Like</button>
+                <span class="count like-count">{{likesCount}}</span>
+        </div>
+        <div class="action-container">
+            <button id="dislike-btn-post-{{_id}}" 
+                class="{{#includes ../userProfile.dislikes _id}}active{{/includes}}" 
+                onclick="toggleDislike('post', '{{_id}}')">👎 Dislike</button>
+            <span class="count dislike-count">{{dislikesCount}}</span>
+        </div>
+
+       <div class="action-container">
+            <button id="comment-btn-{{_id}}" 
+                onclick="toggleComments('{{_id}}')">💬 Comment</button>
+            <span class="count comment-count" id="comment-count-{{_id}}">{{commentsCount}}</span>
+        </div>
     </div>
 
     <!-- Comments Section -->
@@ -53,7 +68,7 @@
 
     <!-- Display Comments -->
     {{#each comments}}
-        {{> comment postId=../_id}}
+        {{> comment postId=../_id userId=../userProfile._id}}
     {{/each}}
 </div>
 

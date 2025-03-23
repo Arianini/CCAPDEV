@@ -17,6 +17,8 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
+const util = require('util');
+server.render = util.promisify(server.render);
 
 // Middleware
 server.use(express.json());
@@ -40,13 +42,26 @@ server.engine('hbs', engine({
             }
             return a === b;
         },
+        includes: function (array, value, options) {
+            if (!array) return options.inverse(this);
+            for (let i = 0; i < array.length; i++) {
+                if (typeof array[i] === 'object' && array[i]._id) {
+                    if (array[i]._id.toString() === value.toString()) {
+                        return options.fn(this);
+                    }
+                } else if (array[i].toString() === value.toString()) {
+                    return options.fn(this);
+                }
+            }
+            return options.inverse(this);
+        },
+        
         formatDate: function (date, format) {  
             if (!date) return "Invalid Date"; 
             if (typeof format !== "string") format = "YYYY-MM-DD HH:mm:ss"; 
             return moment(date).format(format); 
         }
-    },
-    
+    },    
     
     runtimeOptions: {
         allowProtoPropertiesByDefault: true,  
@@ -65,18 +80,24 @@ server.get('/', async (req, res) => {
         const posts = await Post.find()
             .populate('user')
             .populate({
-                path: 'comments.user', // Ensure comments also populate user
+                path: 'comments.user',
                 select: 'username profilePic'
             })
             .sort({ createdAt: -1 });
 
         const userId = req.session.userId;
+        const user = userId ? await User.findById(userId).populate('likes') : null;
+
         const postsWithOwnership = posts.map(post => ({
             ...post.toObject(),
-            isOwner: userId && post.user && post.user._id.toString() === userId
+            isOwner: userId && post.user && post.user._id.toString() === userId,
+            commentsCount: post.comments ? post.comments.length : 0
         }));
 
-        res.render('index', { posts: postsWithOwnership });
+        res.render('index', {
+            posts: postsWithOwnership,
+            userProfile: user
+        });
     } catch (err) {
         console.error("Error fetching posts:", err);
         res.status(500).send("Internal Server Error");
@@ -95,6 +116,7 @@ server.get('/search', async (req, res) => {
     }
 });
 
+/*
 server.get('/', async (req, res) => {
     try {
         const posts = await Post.find().populate('comments.user').sort({ createdAt: -1 });
@@ -113,7 +135,7 @@ server.get('/', async (req, res) => {
         res.status(500).send("Internal Server Error");
     }
 });
-
+*/
 server.get('/register', (req, res) => {
     res.render('register');
 });
@@ -190,63 +212,170 @@ server.get('/profile', async (req, res) => {
     }
 });
 
-server.get('/profile/overview', (req, res) => {
-    res.render('profile/overview', { layout: false });
-});
-
 server.get('/profile/posts', async (req, res) => {
     if (!req.session.userId) {
         return res.redirect('/login');
     }
 
     try {
-        const userPosts = await Post.find({ user: req.session.userId }).populate('user');
+        const user = await User.findById(req.session.userId)
+            .populate('likes')
+            .populate('dislikes');
+
+        const userPosts = await Post.find({ user: req.session.userId })
+            .populate('user')
+            .populate({
+                path: 'comments.user',
+                select: 'username profilePic'
+            });
 
         const postsWithOwnership = userPosts.map(post => ({
             ...post.toObject(),
-            isOwner: post.user._id.toString() === req.session.userId
+            isOwner: post.user._id.toString() === req.session.userId,
+            commentsCount: post.comments ? post.comments.length : 0
         }));
 
-        res.render('profile/posts', { layout: false, posts: postsWithOwnership });
+        res.render('profile/posts', {
+            layout: false,
+            posts: postsWithOwnership,
+            userProfile: user
+        });
+
     } catch (err) {
-        console.error('Error fetching posts:', err);
+        console.error('❌ Error fetching user posts for profile:', err);
         res.status(500).send('Internal Server Error');
     }
 });
 
-server.get('/profile/comments', (req, res) => {
-    res.render('profile/comments', { layout: false }); 
-});
-
-server.get('/profile/saved', async (req, res) => {
-    if (!req.session.userId) {
-        return res.redirect('/login');
-    }
+server.get('/profile/likes', async (req, res) => {
+    if (!req.session.userId) return res.redirect('/login');
 
     try {
-        const user = await User.findById(req.session.userId).populate('saved');
+        const user = await User.findById(req.session.userId).populate({
+            path: 'likes',
+            populate: [
+                { path: 'user' },
+                { path: 'comments.user', select: 'username profilePic' }
+            ]
+        });
 
-        if (!user) {
-            return res.redirect('/login');
-        }
+        const likedPosts = user.likes.map(post => ({
+            ...post.toObject(),
+            isOwner: post.user._id.toString() === req.session.userId,
+            commentsCount: post.comments ? post.comments.length : 0
+        }));
 
-        res.render('profile/saved', { layout: false, posts: user.saved });
+        res.render('profile/likes', { layout: false, posts: likedPosts, userProfile: user });
     } catch (err) {
-        console.error("Error fetching saved posts:", err);
+        console.error("❌ Error loading liked posts:", err);
         res.status(500).send("Internal Server Error");
     }
 });
 
-server.get('/profile/hidden', (req, res) => {
-    res.render('profile/hidden', { layout: false }); 
+server.get('/profile/dislikes', async (req, res) => {
+    if (!req.session.userId) return res.redirect('/login');
+
+    try {
+        const user = await User.findById(req.session.userId).populate({
+            path: 'dislikes',
+            populate: [
+                { path: 'user' },
+                { path: 'comments.user', select: 'username profilePic' }
+            ]
+        });
+
+        const dislikedPosts = user.dislikes.map(post => ({
+            ...post.toObject(),
+            isOwner: post.user._id.toString() === req.session.userId,
+            commentsCount: post.comments ? post.comments.length : 0
+        }));
+
+        res.render('profile/dislikes', { layout: false, posts: dislikedPosts, userProfile: user });
+    } catch (err) {
+        console.error("❌ Error loading disliked posts:", err);
+        res.status(500).send("Internal Server Error");
+    }
 });
 
-server.get('/profile/likes', (req, res) => {
-    res.render('profile/likes', { layout: false }); 
+
+server.post('/like/:postId', async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ success: false });
+    try {
+        const user = await User.findById(req.session.userId);
+        const post = await Post.findById(req.params.postId);
+        if (!user || !post) return res.status(404).json({ success: false });
+
+        let liked = false;
+        let wasDisliked = false;
+
+        if (!user.likes.includes(post._id)) {
+            user.likes.push(post._id);
+            if (user.dislikes.includes(post._id)) {
+                wasDisliked = true;
+                user.dislikes = user.dislikes.filter(p => p.toString() !== post._id.toString());
+            }
+            liked = true;
+        } else {
+            user.likes = user.likes.filter(p => p.toString() !== post._id.toString());
+            liked = false;
+        }
+        await user.save();
+
+        // Update post counts
+        if (liked) {
+            await Post.findByIdAndUpdate(post._id, { $inc: { likesCount: 1 } });
+            if (wasDisliked) {
+                await Post.findByIdAndUpdate(post._id, { $inc: { dislikesCount: -1 } });
+            }
+        } else {
+            await Post.findByIdAndUpdate(post._id, { $inc: { likesCount: -1 } });
+        }
+        const updatedPost = await Post.findById(post._id);
+        res.json({ success: true, liked, likesCount: updatedPost.likesCount, dislikesCount: updatedPost.dislikesCount });
+    } catch (err) {
+        console.error("Like error:", err);
+        res.status(500).json({ success: false });
+    }
 });
 
-server.get('/profile/dislikes', (req, res) => {
-    res.render('profile/dislikes', { layout: false }); 
+server.post('/dislike/:postId', async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ success: false });
+    try {
+        const user = await User.findById(req.session.userId);
+        const post = await Post.findById(req.params.postId);
+        if (!user || !post) return res.status(404).json({ success: false });
+
+        let disliked = false;
+        let wasLiked = false;
+
+        if (!user.dislikes.includes(post._id)) {
+            user.dislikes.push(post._id);
+            if (user.likes.includes(post._id)) {
+                wasLiked = true;
+                user.likes = user.likes.filter(p => p.toString() !== post._id.toString());
+            }
+            disliked = true;
+        } else {
+            user.dislikes = user.dislikes.filter(p => p.toString() !== post._id.toString());
+            disliked = false;
+        }
+        await user.save();
+
+        // Update post counts
+        if (disliked) {
+            await Post.findByIdAndUpdate(post._id, { $inc: { dislikesCount: 1 } });
+            if (wasLiked) {
+                await Post.findByIdAndUpdate(post._id, { $inc: { likesCount: -1 } });
+            }
+        } else {
+            await Post.findByIdAndUpdate(post._id, { $inc: { dislikesCount: -1 } });
+        }
+        const updatedPost = await Post.findById(post._id);
+        res.json({ success: true, disliked, likesCount: updatedPost.likesCount, dislikesCount: updatedPost.dislikesCount });
+    } catch (err) {
+        console.error("Dislike error:", err);
+        res.status(500).json({ success: false });
+    }
 });
 
 // Profile Picture Update Route
@@ -328,26 +457,26 @@ server.post('/settings', async (req, res) => {
 
 server.post('/create-post', upload.single("image"), async (req, res) => {
     if (!req.session.userId) {
-        return res.redirect('/login');
+        return res.status(401).json({ error: "Unauthorized. Please log in." });
     }
 
-    const caption = req.body.caption ? req.body.caption.trim() : "";
+    const caption = req.body.caption?.trim() || "";
     const imageUrl = req.file ? `/uploads/${req.file.filename}` : "";
 
-    if (!caption && !imageUrl) { 
+    if (!caption && !req.file) {
         return res.status(400).json({ error: "Post must contain either a caption or an image." });
     }
 
     try {
         const user = await User.findById(req.session.userId);
         if (!user) {
-            return res.status(400).send("❌ User not found!");
+            return res.status(404).json({ error: "User not found." });
         }
 
         const newPost = new Post({
             user: user._id,
             caption,
-            imageUrl 
+            imageUrl: imageUrl || null
         });
 
         await newPost.save();
@@ -356,11 +485,10 @@ server.post('/create-post', upload.single("image"), async (req, res) => {
 
         res.json({ success: true, message: "Post created successfully!" });
     } catch (err) {
-        console.error("Error creating post:", err);
+        console.error("🚨 Error creating post:", err);
         res.status(500).json({ error: "Internal Server Error" });
     }
 });
-
 
 server.patch('/edit-comment/:postId/:commentId', async (req, res) => {
     if (!req.session.userId) {
@@ -493,6 +621,7 @@ server.post('/add-comment/:postId', async (req, res) => {
         const newComment = {
             _id: new mongoose.Types.ObjectId(), 
             user: user._id,
+            profilePic: user.profilePic,
             content: commentText
         };
 
@@ -506,15 +635,21 @@ server.post('/add-comment/:postId', async (req, res) => {
 
         console.log("✅ Comment added successfully by:", user.username);
 
+        const renderedComment = await server.render('partials/comment', {
+            layout: false,
+            _id: newComment._id.toString(),
+            postId: postId,
+            user: {
+                username: user.username,
+                profilePic: user.profilePic
+            },
+            content: commentText
+        });
+        
         res.status(200).json({
             success: true,
-            message: "Comment added successfully!",
-            comment: {
-                _id: newComment._id.toString(),
-                username: user.username,
-                content: commentText 
-            }
-        });
+            html: renderedComment
+        });        
 
     } catch (error) {
         console.error("Critical Error in /add-comment route:", error);
@@ -524,15 +659,19 @@ server.post('/add-comment/:postId', async (req, res) => {
 
 server.post('/render-comment', async (req, res) => {
     try {
-        const { postId, commentId, username, content } = req.body;
+        const { postId, commentId, username, content, profilePic } = req.body;
 
         res.render('partials/comment', {
-            layout: false, 
+            layout: false,
             _id: commentId,
             postId: postId,
-            username: username,
+            user: {
+                username: username,
+                profilePic: profilePic
+            },
             content: content
         });
+        
 
     } catch (error) {
         console.error("Error rendering comment:", error);
@@ -612,6 +751,103 @@ server.put('/edit-comment/:postId/:commentId', async (req, res) => {
     } catch (error) {
         console.error("Error editing comment:", error);
         res.status(500).json({ error: "Internal Server Error." });
+    }
+});
+
+server.post('/like-comment/:postId/:commentId', async (req, res) => {
+    if (!req.session.userId) {
+        return res.status(401).json({ error: "Unauthorized: You must be logged in." });
+    }
+    try {
+        const { postId, commentId } = req.params;
+        const post = await Post.findById(postId);
+        if (!post) {
+            console.error("Post not found");
+            return res.status(404).json({ success: false, message: "Post not found" });
+        }
+        const comment = post.comments.id(commentId);
+        if (!comment) {
+            console.error("Comment not found");
+            return res.status(404).json({ success: false, message: "Comment not found" });
+        }
+        // (With the defaults in the schema, you might not need these checks)
+        if (!comment.likes) comment.likes = [];
+        if (!comment.dislikes) comment.dislikes = [];
+        
+        let liked = false;
+        const userId = req.session.userId.toString();
+        
+        if (!comment.likes.includes(userId)) {
+            comment.likes.push(userId);
+            comment.dislikes = comment.dislikes.filter(uid => uid.toString() !== userId);
+            liked = true;
+        } else {
+            comment.likes = comment.likes.filter(uid => uid.toString() !== userId);
+            liked = false;
+        }
+        post.markModified('comments');
+
+        await post.save();
+        console.log("Updated comment:", comment);
+        return res.json({
+            success: true,
+            liked,
+            likesCount: comment.likes.length,
+            dislikesCount: comment.dislikes.length
+        });
+    } catch (err) {
+        console.error("Error in like-comment endpoint:", err);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+server.post('/dislike-comment/:postId/:commentId', async (req, res) => {
+    if (!req.session.userId) {
+        return res.status(401).json({ error: "Unauthorized: You must be logged in." });
+    }
+    try {
+        const { postId, commentId } = req.params;
+        const post = await Post.findById(postId);
+        if (!post) {
+            console.error("Post not found");
+            return res.status(404).json({ success: false, message: "Post not found" });
+        }
+        const comment = post.comments.id(commentId);
+        if (!comment) {
+            console.error("Comment not found");
+            return res.status(404).json({ success: false, message: "Comment not found" });
+        }
+        // With defaults in the schema these may not be necessary:
+        if (!comment.likes) comment.likes = [];
+        if (!comment.dislikes) comment.dislikes = [];
+        
+        let disliked = false;
+        const userId = req.session.userId.toString();
+        
+        if (!comment.dislikes.includes(userId)) {
+            // User hasn't disliked yet: add dislike and remove any like
+            comment.dislikes.push(userId);
+            comment.likes = comment.likes.filter(uid => uid.toString() !== userId);
+            disliked = true;
+        } else {
+            // User has already disliked: remove dislike
+            comment.dislikes = comment.dislikes.filter(uid => uid.toString() !== userId);
+            disliked = false;
+        }
+        
+        post.markModified('comments');
+
+        await post.save();
+        console.log("Updated comment:", comment);
+        return res.json({
+            success: true,
+            disliked,
+            likesCount: comment.likes.length,
+            dislikesCount: comment.dislikes.length
+        });
+    } catch (err) {
+        console.error("Error in dislike-comment endpoint:", err);
+        res.status(500).json({ success: false, message: "Server error" });
     }
 });
 

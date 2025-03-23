@@ -201,3 +201,17 @@
     display: block;
     margin: 5px auto;
 }
+
+.custom-upload-btn {
+    display: inline-block;
+    padding: 8px 12px;
+    background-color: #007BFF;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 5px;
+    text-align: center;
+}
+.custom-upload-btn:hover {
+    background-color: #0056b3;
+}
