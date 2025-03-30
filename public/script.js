@@ -408,3 +408,19 @@ async function addComment(postId) {
         alert("An error occurred while adding the comment.");
     }
 }
+
+//search script
+document.addEventListener("DOMContentLoaded", function () {
+    const searchInput = document.querySelector(".search-bar input");
+    const searchButton = document.querySelector(".search-bar button");
+
+    if (searchButton && searchInput) {
+        searchButton.addEventListener("click", () => {
+            const query = searchInput.value.trim();
+            if (!query) return;
+
+            // Redirect to /search?q=query
+            window.location.href = `/search?q=${encodeURIComponent(query)}`;
+        });
+    }
+});

@@ -113,8 +113,34 @@ server.get('/search', async (req, res) => {
     } catch (err) {
         console.error("Search Error:", err);
         res.status(500).send("Internal Server Error");
+    }   
+});
+
+//filter to tags
+server.get('/posts', async (req, res) => {
+    try {
+        const tag = req.query.tag || null;
+        let posts;
+
+        if (tag) {
+            posts = await Post.find({ postTag: tag }).populate('user');
+        } else {
+            posts = await Post.find().populate('user');
+        }
+
+        res.render('partials/post-list', { 
+            filteredPosts: posts, 
+            selectedTag: tag || "All",
+            userProfile: req.user 
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("<p>Error loading posts.</p>");
     }
 });
+
+
 
 /*
 server.get('/', async (req, res) => {

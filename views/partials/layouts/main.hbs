@@ -6,7 +6,8 @@
     <title>CCAPDEV</title>
     <link rel="stylesheet" href="styles/PageTemplate.css">
     <link rel="stylesheet" href="styles/Home.css">
-    
+    <script src="/script.js"></script>
+
     <script src="https://kit.fontawesome.com/2616052655.js" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -71,6 +72,21 @@
                 }
             });
         });
+        //search script
+            document.addEventListener("DOMContentLoaded", function () {
+                const searchInput = document.querySelector(".search-bar input");
+                const searchButton = document.querySelector(".search-bar button");
+
+                if (searchButton && searchInput) {
+                    searchButton.addEventListener("click", () => {
+                        const query = searchInput.value.trim();
+                        if (!query) return;
+
+                        // Redirect to /search?q=query
+                        window.location.href = `/search?q=${encodeURIComponent(query)}`;
+                    });
+                }
+            });
     </script>
 </body>
 </html>

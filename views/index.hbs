@@ -56,12 +56,16 @@
         <div class="left-block">
             <h1>Find Your Community!</h1>
             <div class="community-list">
-                <a href="#">Landscapes</a>
-                <a href="#">Food</a>
-                <a href="#">Artwork</a>
-                <a href="#">Travel</a>
-                <a href="#">Animals</a>
+                <a href="#" data-tag="Gaming">Gaming</a>
+                <a href="#" data-tag="Food">Food</a>
+                <a href="#" data-tag="Artwork">Artwork</a>
+                <a href="#" data-tag="Travel">Travel</a>
+                <a href="#" data-tag="Animals">Animals</a>
             </div>   
+        </div>
+
+        <div id="post-container">
+            <!-- Posts will be loaded here dynamically -->
         </div>
 
         <div class="middle-block">
@@ -351,6 +355,32 @@
         });
 
     });
+    </script>
+
+    <script>
+        document.querySelectorAll(".community-list a").forEach(link => {
+            link.addEventListener("click", async function (event) {
+                event.preventDefault(); // Prevent default link behavior
+                const selectedTag = this.getAttribute("data-tag");
+                await fetchAndDisplayPosts(selectedTag);
+            });
+        });
+
+        async function fetchAndDisplayPosts(tag) {
+            const middleBlock = document.querySelector(".middle-block");
+            middleBlock.innerHTML = `<h2>${tag} Posts</h2><p>Loading...</p>`;
+
+            try {
+                // Fetch rendered HTML instead of JSON data
+                const response = await fetch(`/posts?tag=${encodeURIComponent(tag)}`);
+                const html = await response.text();
+
+                middleBlock.innerHTML = html;
+            } catch (error) {
+                console.error("Error fetching posts:", error);
+                middleBlock.innerHTML = `<h2>${tag} Posts</h2><p>Error loading posts.</p>`;
+            }
+        }
     </script>
     <script src="/script.js"></script>
 </body>

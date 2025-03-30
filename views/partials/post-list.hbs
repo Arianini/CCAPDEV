@@ -1,0 +1,12 @@
+<div class="user-posts">
+    <h2>{{selectedTag}} Posts</h2>
+    {{#if filteredPosts.length}}
+        <div class="post-feed">
+            {{#each filteredPosts}}
+                {{> post userProfile=../userProfile}}
+            {{/each}}
+        </div>
+    {{else}}
+        <p class="no-posts">No posts found for this tag.</p>
+    {{/if}}
+</div>
