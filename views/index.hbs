@@ -371,11 +371,27 @@
             middleBlock.innerHTML = `<h2>${tag} Posts</h2><p>Loading...</p>`;
 
             try {
-                // Fetch rendered HTML instead of JSON data
-                const response = await fetch(`/posts?tag=${encodeURIComponent(tag)}`);
-                const html = await response.text();
+                const response = await fetch(`/api/posts?tag=${encodeURIComponent(tag)}`);
+                const posts = await response.json();
 
-                middleBlock.innerHTML = html;
+                if (!posts.length) {
+                    middleBlock.innerHTML = `<h2>${tag} Posts</h2><p>No posts found.</p>`;
+                    return;
+                }
+
+                let postHTML = `<h2>${tag} Posts</h2>`;
+                posts.forEach(post => {
+                    postHTML += `
+                        <div class="post">
+                            <p>${post.caption}</p>
+                            ${post.imageUrl ? `<img src="${post.imageUrl}" alt="Post image">` : ''}
+                            <small>By ${post.user} - ${new Date(post.createdAt).toLocaleDateString()}</small>
+                        </div>
+                    `;
+                });
+
+
+                middleBlock.innerHTML = postHTML;
             } catch (error) {
                 console.error("Error fetching posts:", error);
                 middleBlock.innerHTML = `<h2>${tag} Posts</h2><p>Error loading posts.</p>`;

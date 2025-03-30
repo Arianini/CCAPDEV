@@ -113,33 +113,29 @@ server.get('/search', async (req, res) => {
     } catch (err) {
         console.error("Search Error:", err);
         res.status(500).send("Internal Server Error");
-    }   
-});
-
-//filter to tags
-server.get('/posts', async (req, res) => {
-    try {
-        const tag = req.query.tag || null;
-        let posts;
-
-        if (tag) {
-            posts = await Post.find({ postTag: tag }).populate('user');
-        } else {
-            posts = await Post.find().populate('user');
-        }
-
-        res.render('partials/post-list', { 
-            filteredPosts: posts, 
-            selectedTag: tag || "All",
-            userProfile: req.user 
-        });
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).send("<p>Error loading posts.</p>");
     }
 });
 
+//filter to tags
+server.get('/api/posts', async (req, res) => {
+    try {
+        const { tag } = req.query;
+        if (!tag) return res.status(400).json({ message: "Tag is required" });
+
+        console.log("Fetching posts with tag:", tag); // Debugging
+
+        const posts = await Post.find({ postTag: tag }) // Find posts with the tag
+            .populate('user', 'username')
+            .sort({ createdAt: -1 });
+
+        console.log("Posts found:", posts.length); // Debugging
+
+        res.json(posts);
+    } catch (error) {
+        console.error("Error fetching posts by tag:", error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+});
 
 
 /*
