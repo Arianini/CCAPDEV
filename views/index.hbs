@@ -91,25 +91,16 @@
                         <img src="{{userProfile.profilePic}}" alt="Profile Picture" class="profile-picture">
                         <span>{{userProfile.username}}</span>
                     </div>
+                    
                     <textarea id="post-caption" placeholder="What's on your mind?"></textarea>
 
-                    <!-- Emoji Picker -->
-                    <div class="emoji-picker">
-                        <span onclick="addEmoji('😀')">😀</span>
-                        <span onclick="addEmoji('❤️')">❤️</span>
-                        <span onclick="addEmoji('😂')">😂</span>
-                        <span onclick="addEmoji('😢')">😢</span>
-                        <span onclick="addEmoji('😡')">😡</span>
-                    </div>
+                    <!-- Post Tag Input -->
+                    <input type="text" id="post-tag" placeholder="Enter post tag (e.g., Gaming, Tech, Food)" />
 
                     <!-- Image Upload Input -->
                     <label for="post-image" class="custom-upload-btn">📷 Upload Image</label>
                     <input type="file" id="post-image" accept="image/*" onchange="previewImage(event)" style="display: none;">
 
-                    <!-- Image Preview -->
-                    <div id="image-preview-container" style="display: none; max-height: 250px; overflow-y: auto;">
-                        <img id="image-preview" src="" alt="Image Preview" style="max-width: 100%; display: block;">
-                    </div>
                     <!-- Post Button -->
                     <button class="post-btn" onclick="submitPost()">Post</button>
                 </div>
@@ -364,21 +355,6 @@
                 window.location.href = this.href; // Navigate to the new page
             });
         });
-
-
-        async function fetchAndDisplayPosts(tag) {
-            const middleBlock = document.querySelector(".middle-block");
-            middleBlock.innerHTML = `<h2>${tag} Posts</h2><p>Loading...</p>`;
-
-            try {
-                const response = await fetch(`/posts?tag=${encodeURIComponent(tag)}`);
-                const html = await response.text(); // Get rendered HTML
-                middleBlock.innerHTML = html;
-            } catch (error) {
-                console.error("Error fetching posts:", error);
-                middleBlock.innerHTML = `<h2>${tag} Posts</h2><p>Error loading posts.</p>`;
-            }
-        }
 
     </script>
     <script src="/script.js"></script>

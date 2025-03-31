@@ -64,16 +64,23 @@ async function deletePost(postId) {
 
 function submitPost() {
     const caption = document.getElementById("post-caption").value.trim();
+    const postTag = document.getElementById("post-tag").value.trim(); // ✅ Get postTag
     const imageInput = document.getElementById("post-image");
     const imageFile = imageInput.files[0];
 
     if (!caption && !imageFile) {
-        alert("You must enter a caption or upload an image.");
+        alert("⚠ You must enter a caption or upload an image.");
+        return;
+    }
+
+    if (!postTag) {
+        alert("⚠ Please enter a post tag.");
         return;
     }
 
     const formData = new FormData();
     formData.append("caption", caption);
+    formData.append("postTag", postTag); // ✅ Add postTag
     if (imageFile) {
         formData.append("image", imageFile);
     }
@@ -85,13 +92,15 @@ function submitPost() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
+            alert("✅ Post created successfully!");
             location.reload(); 
         } else {
-            alert(data.error);
+            alert("❌ " + data.error);
         }
     })
-    .catch(err => console.error("Error creating post:", err));
+    .catch(err => console.error("❌ Error creating post:", err));
 }
+
 
 function previewImage(event) {
     const file = event.target.files[0];
@@ -409,18 +418,4 @@ async function addComment(postId) {
     }
 }
 
-//search script
-document.addEventListener("DOMContentLoaded", function () {
-    const searchInput = document.querySelector(".search-bar input");
-    const searchButton = document.querySelector(".search-bar button");
 
-    if (searchButton && searchInput) {
-        searchButton.addEventListener("click", () => {
-            const query = searchInput.value.trim();
-            if (!query) return;
-
-            // Redirect to /search?q=query
-            window.location.href = `/search?q=${encodeURIComponent(query)}`;
-        });
-    }
-});

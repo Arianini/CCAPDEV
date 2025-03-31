@@ -495,6 +495,7 @@ server.post('/create-post', upload.single("image"), async (req, res) => {
     }
 
     const caption = req.body.caption?.trim() || "";
+    const postTag = req.body.postTag?.trim() || ""; 
     const imageUrl = req.file ? `/uploads/${req.file.filename}` : "";
 
     if (!caption && !req.file) {
@@ -510,6 +511,7 @@ server.post('/create-post', upload.single("image"), async (req, res) => {
         const newPost = new Post({
             user: user._id,
             caption,
+            postTag, 
             imageUrl: imageUrl || null
         });
 
@@ -523,6 +525,7 @@ server.post('/create-post', upload.single("image"), async (req, res) => {
         res.status(500).json({ error: "Internal Server Error" });
     }
 });
+
 
 server.patch('/edit-comment/:postId/:commentId', async (req, res) => {
     if (!req.session.userId) {
