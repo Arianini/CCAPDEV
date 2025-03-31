@@ -117,25 +117,27 @@ server.get('/search', async (req, res) => {
 });
 
 //filter to tags
-server.get('/api/posts', async (req, res) => {
+server.get('/posts', async (req, res) => {
     try {
         const { tag } = req.query;
         if (!tag) return res.status(400).json({ message: "Tag is required" });
 
         console.log("Fetching posts with tag:", tag); // Debugging
 
-        const posts = await Post.find({ postTag: tag }) // Find posts with the tag
-            .populate('user', 'username')
+        const posts = await Post.find({ postTag: tag })
+            .populate('user', 'username profilePic')
             .sort({ createdAt: -1 });
 
         console.log("Posts found:", posts.length); // Debugging
 
-        res.json(posts);
+        // Render without the default layout
+        res.render('partials/post-list', { tag, posts, layout: false });
     } catch (error) {
         console.error("Error fetching posts by tag:", error);
-        res.status(500).json({ message: "Internal Server Error" });
+        res.status(500).send("Internal Server Error");
     }
 });
+
 
 
 /*
