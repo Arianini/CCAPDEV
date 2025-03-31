@@ -383,13 +383,34 @@
                 posts.forEach(post => {
                     postHTML += `
                         <div class="post">
+                            <!-- User Info -->
+                            <div class="user-info">
+                                <img src="${post.user.profilePic || '/default-avatar.jpg'}" alt="User profile" class="profile-pic">
+                                <span class="username">${post.user.username}</span>
+                            </div>
+
+                            <!-- Post Content -->
                             <p>${post.caption}</p>
-                            ${post.imageUrl ? `<img src="${post.imageUrl}" alt="Post image">` : ''}
-                            <small>By ${post.user} - ${new Date(post.createdAt).toLocaleDateString()}</small>
+                            ${post.imageUrl ? `<img src="${post.imageUrl}" alt="Post image" class="post-image">` : ''}
+
+                            <!-- Post Actions -->
+                            <div class="post-actions">
+                                <button onclick="likePost('${post._id}')">👍 ${post.likesCount}</button>
+                                <button onclick="dislikePost('${post._id}')">👎 ${post.dislikesCount}</button>
+                                <button onclick="toggleComments('${post._id}')">💬 Comments (${post.comments.length})</button>
+                            </div>
+
+                            <!-- Comments Section -->
+                            <div class="comments" id="comments-${post._id}" style="display: none;">
+                                ${post.comments.map(comment => `
+                                    <div class="comment">
+                                        <strong>${comment.user}</strong>: ${comment.content}
+                                    </div>
+                                `).join('')}
+                            </div>
                         </div>
                     `;
                 });
-
 
                 middleBlock.innerHTML = postHTML;
             } catch (error) {
@@ -397,6 +418,7 @@
                 middleBlock.innerHTML = `<h2>${tag} Posts</h2><p>Error loading posts.</p>`;
             }
         }
+
     </script>
     <script src="/script.js"></script>
 </body>
