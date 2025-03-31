@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CCAPDEV MCO1</title>
-    <link rel="stylesheet" href="styles/PostTemplate.css">
-
+    <link rel="stylesheet" href="/styles/PostTemplate.css">
     <script>
         /*
         function toggleLike(postId) {
-            fetch(`/like/${postId}`, { method: 'POST' })
+            fetch(`/like/${postId}`, { method: 'POST' }) 
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
@@ -32,7 +31,6 @@
                 });
         }
         */
-
         function togglePostOptions(postId) {
             const menu = document.getElementById(`options-menu-${postId}`);
             menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
@@ -70,12 +68,14 @@
 
         <div class="middle-block">
             <div class="post-feed">
-                <h2>Recent Posts</h2>
                 {{#each posts}}
                     {{> post this userProfile=userProfile}}
+                {{else}}
+                    <p>No posts available for this tag.</p>
                 {{/each}}
             </div>
         </div>
+
         <!-- Create Post Modal -->
         <div id="create-post-modal" class="modal">
             <div class="modal-content">
@@ -364,7 +364,6 @@
                 window.location.href = this.href; // Navigate to the new page
             });
         });
-
 
         async function fetchAndDisplayPosts(tag) {
             const middleBlock = document.querySelector(".middle-block");

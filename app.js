@@ -117,26 +117,36 @@ server.get('/search', async (req, res) => {
 });
 
 //filter to tags
-server.get('/posts', async (req, res) => {
+server.get('/posts/:tag', async (req, res) => {
     try {
-        const { tag } = req.query;
+        const tag = req.params.tag;
         if (!tag) return res.status(400).json({ message: "Tag is required" });
 
         console.log("Fetching posts with tag:", tag); // Debugging
 
         const posts = await Post.find({ postTag: tag })
-            .populate('user', 'username profilePic')
+            .populate('user', 'username profilePic') // Populate post owner
+            .populate('comments.user', 'username profilePic') // Populate users in comments
             .sort({ createdAt: -1 });
 
-        console.log("Posts found:", posts.length); // Debugging
 
-        // Render without the default layout
-        res.render('partials/post-list', { tag, posts, layout: false });
+        console.log("Posts found:", posts.length); // Debugging
+        
+        const formattedPosts = posts.map(post => ({
+            ...post.toObject(), // Converts Mongoose document to plain JSON
+            user: {
+                ...post.user.toObject(), // Ensures nested user object is plain JSON
+            }
+        }));
+        
+        // Render the taggedPosts.hbs page with posts filtered by tag
+        res.render('taggedPosts', { tag, posts: formattedPosts });  
     } catch (error) {
         console.error("Error fetching posts by tag:", error);
         res.status(500).send("Internal Server Error");
     }
 });
+
 
 
 
