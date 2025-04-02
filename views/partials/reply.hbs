@@ -1,0 +1,46 @@
+<div class="reply-item" id="reply-{{_id}}">
+    <div class="comment-header">
+        <div class="comment-info">
+            <img class="comment-user-icon" src="{{user.profilePic}}" alt="{{user.username}}" />
+            <span class="comment-username">{{user.username}}</span>
+            <div class="comment-options">
+                <button class="comment-options-btn" onclick="toggleReplyOptions('{{_id}}')">⋮</button>
+                <div class="comment-options-menu" id="reply-options-{{_id}}" style="display: none;">
+                    {{#if isOwner}}
+                        <button class="edit-btn" onclick="openEditReplyModal('{{_id}}')">✏ Edit</button>
+                        <button class="delete-btn" onclick="deleteReply('{{postId}}', '{{commentId}}', '{{_id}}')">🗑 Delete</button>
+                    {{else}}
+                        <button class="report-btn" onclick="reportReply('{{_id}}')">⚠ Report</button>
+                    {{/if}}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="comment-content" id="reply-text-{{_id}}">{{content}}</div>
+
+    <!-- Edit Reply Modal -->
+    <div class="edit-comment-modal" id="edit-reply-modal-{{_id}}" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Reply</h2>
+                <span class="close-btn" onclick="closeEditReplyModal('{{_id}}')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <textarea id="edit-reply-input-{{_id}}" class="edit-comment-text">{{content}}</textarea>
+                <div class="modal-actions">
+                    <button class="save-btn" onclick="saveEditedReply('{{postId}}', '{{commentId}}', '{{_id}}')">💾 Save</button>
+                    <button class="cancel-btn" onclick="closeEditReplyModal('{{_id}}')">❌ Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="comment-actions">
+        <button onclick="likeReply('{{postId}}', '{{commentId}}', '{{_id}}')">👍</button>
+        <span class="like-count" id="reply-like-{{_id}}">{{likes.length}}</span>
+
+        <button onclick="dislikeReply('{{postId}}', '{{commentId}}', '{{_id}}')">👎</button>
+        <span class="dislike-count" id="reply-dislike-{{_id}}">{{dislikes.length}}</span>
+    </div>
+</div>

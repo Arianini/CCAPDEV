@@ -9,6 +9,14 @@ const router = express.Router();
 const server = express();
 const multer = require('multer');
 const mongoose = require('mongoose');  
+require('dotenv').config();
+mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/ccapdev-mco3', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+})
+.then(() => console.log("✅ Connected to MongoDB"))
+.catch((err) => console.error("❌ MongoDB connection error:", err));
+
 const storage = multer.diskStorage({
     destination: "./public/uploads/",
     filename: (req, file, cb) => {
@@ -24,7 +32,7 @@ server.render = util.promisify(server.render);
 server.use(express.json());
 server.use(express.urlencoded({ extended: true }));
 server.use(session({
-    secret: 'your-secret-key',
+    secret: process.env.SESSION_SECRET || 'your-secret-key',
     resave: false,
     saveUninitialized: false
 }));
@@ -60,7 +68,8 @@ server.engine('hbs', engine({
             if (!date) return "Invalid Date"; 
             if (typeof format !== "string") format = "YYYY-MM-DD HH:mm:ss"; 
             return moment(date).format(format); 
-        }
+        },
+
     },    
     
     runtimeOptions: {
@@ -88,11 +97,21 @@ server.get('/', async (req, res) => {
         const userId = req.session.userId;
         const user = userId ? await User.findById(userId).populate('likes') : null;
 
-        const postsWithOwnership = posts.map(post => ({
-            ...post.toObject(),
-            isOwner: userId && post.user && post.user._id.toString() === userId,
-            commentsCount: post.comments ? post.comments.length : 0
-        }));
+        const postsWithOwnership = posts.map(post => {
+            const postObj = post.toObject();
+
+            const updatedComments = postObj.comments.map(comment => ({
+                ...comment,
+                isOwner: userId && comment.user && comment.user._id.toString() === userId
+            }));
+
+            return {
+                ...postObj,
+                isOwner: userId && post.user && post.user._id.toString() === userId,
+                comments: updatedComments,
+                commentsCount: post.comments ? post.comments.length : 0
+            };
+        });
 
         res.render('index', {
             posts: postsWithOwnership,
@@ -103,6 +122,7 @@ server.get('/', async (req, res) => {
         res.status(500).send("Internal Server Error");
     }
 });
+
 
 // Search Route for Finding Posts
 server.get('/search', async (req, res) => {
@@ -116,26 +136,38 @@ server.get('/search', async (req, res) => {
     }
 });
 
-/*
-server.get('/', async (req, res) => {
+//filter to tags
+server.get('/posts/:tag', async (req, res) => {
     try {
-        const posts = await Post.find().populate('comments.user').sort({ createdAt: -1 });
+        const tag = req.params.tag;
+        if (!tag) return res.status(400).json({ message: "Tag is required" });
 
-        const userId = req.session.userId;
+        console.log("Fetching posts with tag:", tag); // Debugging
+
+        const posts = await Post.find({ postTag: tag })
+            .populate('user', 'username profilePic') // Populate post owner
+            .populate('comments.user', 'username profilePic') // Populate users in comments
+            .sort({ createdAt: -1 });
+
+
+        console.log("Posts found:", posts.length); // Debugging
+        
         const formattedPosts = posts.map(post => ({
-            ...post.toObject(),
-            comments: post.comments.map(comment => ({
-                ...comment.toObject(),
-                isOwner: userId && comment.user && comment.user._id.toString() === userId
-            }))
+            ...post.toObject(), // Converts Mongoose document to plain JSON
+            user: {
+                ...post.user.toObject(), // Ensures nested user object is plain JSON
+            }
         }));
-
-        res.render('index', { posts: formattedPosts });
-    } catch (err) {
+        
+        // Render the taggedPosts.hbs page with posts filtered by tag
+        res.render('taggedPosts', { tag, posts: formattedPosts });  
+    } catch (error) {
+        console.error("Error fetching posts by tag:", error);
         res.status(500).send("Internal Server Error");
     }
 });
-*/
+
+
 server.get('/register', (req, res) => {
     res.render('register');
 });
@@ -461,6 +493,7 @@ server.post('/create-post', upload.single("image"), async (req, res) => {
     }
 
     const caption = req.body.caption?.trim() || "";
+    const postTag = req.body.postTag?.trim() || ""; 
     const imageUrl = req.file ? `/uploads/${req.file.filename}` : "";
 
     if (!caption && !req.file) {
@@ -476,6 +509,7 @@ server.post('/create-post', upload.single("image"), async (req, res) => {
         const newPost = new Post({
             user: user._id,
             caption,
+            postTag, 
             imageUrl: imageUrl || null
         });
 
@@ -584,6 +618,7 @@ router.post("/create-post", upload.single("image"), async (req, res) => {
         const newPost = new Post({
             user: req.session.userId, 
             caption,
+            postTag, 
             imageUrl
         });
 
@@ -643,7 +678,8 @@ server.post('/add-comment/:postId', async (req, res) => {
                 username: user.username,
                 profilePic: user.profilePic
             },
-            content: commentText
+            content: commentText,
+            isOwner: true
         });
         
         res.status(200).json({
@@ -681,37 +717,37 @@ server.post('/render-comment', async (req, res) => {
 
 server.delete('/delete-comment/:postId/:commentId', async (req, res) => {
     if (!req.session.userId) {
-        return res.status(401).json({ error: "Unauthorized: You must be logged in." });
+        return res.status(401).json({ success: false, error: "Unauthorized" });
     }
+
     const { postId, commentId } = req.params;
 
     try {
         const post = await Post.findById(postId);
         if (!post) {
-            return res.status(404).json({ error: "Post not found." });
+            return res.status(404).json({ success: false, error: "Post not found" });
         }
+
         const comment = post.comments.id(commentId);
         if (!comment) {
-            return res.status(404).json({ error: "Comment not found." });
+            return res.status(404).json({ success: false, error: "Comment not found" });
         }
 
         if (comment.user.toString() !== req.session.userId) {
-            return res.status(403).json({ error: "You can only delete your own comments." });
+            return res.status(403).json({ success: false, error: "You can only delete your own comments" });
         }
 
-        await Post.updateOne(
-            { _id: postId },
-            { $pull: { comments: { _id: commentId } } }, 
-            { runValidators: false }
-        );
+        comment.deleteOne();     // 🔥 Remove the comment from the post
+        await post.save();       // 💾 Save changes to DB
 
-        return res.json({ success: true, message: "Comment deleted successfully." });
-
+        return res.json({ success: true, message: "Comment deleted successfully" });
     } catch (err) {
         console.error("Error deleting comment:", err);
-        return res.status(500).json({ error: "Internal Server Error" });
+        return res.status(500).json({ success: false, error: "Internal Server Error" });
     }
 });
+
+
 
 server.put('/edit-comment/:postId/:commentId', async (req, res) => {
     if (!req.session.userId) {
@@ -851,8 +887,228 @@ server.post('/dislike-comment/:postId/:commentId', async (req, res) => {
     }
 });
 
+server.post('/reply-comment/:postId/:commentId', async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ success: false, error: "Unauthorized" });
+
+    const { postId, commentId } = req.params;
+    const { replyText } = req.body;
+
+    try {
+        const post = await Post.findById(postId);
+        const user = await User.findById(req.session.userId);
+
+        if (!post || !user) return res.status(404).json({ success: false });
+
+        const newReply = {
+            _id: new mongoose.Types.ObjectId(),
+            user: user._id,
+            content: replyText,
+            createdAt: new Date(),
+            likes: [],
+            dislikes: []
+        };
+
+        const comment = post.comments.id(commentId);
+        if (!comment) return res.status(404).json({ success: false });
+
+        comment.replies.push(newReply);
+        post.markModified('comments');
+        await post.save();
+
+        const renderedReply = await server.render('partials/reply', {
+            layout: false,
+            _id: newReply._id.toString(),
+            postId: postId,
+            commentId: commentId,
+            user: {
+                username: user.username,
+                profilePic: user.profilePic
+            },
+            content: replyText,
+            likes: [],
+            dislikes: [],
+            isOwner: true,
+            isReply: true
+        });        
+
+        res.status(200).json({ success: true, html: renderedReply });
+    } catch (err) {
+        console.error("Reply Error:", err);
+        res.status(500).json({ success: false });
+    }
+});
+
+server.delete('/delete-reply/:postId/:commentId/:replyId', async (req, res) => {
+    if (!req.session.userId) {
+        return res.status(401).json({ success: false, error: "Unauthorized" });
+    }
+
+    const { postId, commentId, replyId } = req.params;
+
+    try {
+        const post = await Post.findById(postId);
+        if (!post) {
+            return res.status(404).json({ success: false, error: "Post not found" });
+        }
+
+        const comment = post.comments.id(commentId);
+        if (!comment) {
+            return res.status(404).json({ success: false, error: "Comment not found" });
+        }
+
+        const reply = comment.replies.id(replyId);
+        if (!reply) {
+            return res.status(404).json({ success: false, error: "Reply not found" });
+        }
+
+        if (reply.user.toString() !== req.session.userId) {
+            return res.status(403).json({ success: false, error: "You can only delete your own replies" });
+        }
+
+        reply.deleteOne();
+        post.markModified('comments');
+        await post.save();
+
+        res.json({ success: true, message: "Reply deleted successfully" });
+    } catch (err) {
+        console.error("Error deleting reply:", err);
+        res.status(500).json({ success: false, error: "Internal Server Error" });
+    }
+});
+
+server.put('/edit-reply/:postId/:commentId/:replyId', async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ success: false, error: "Unauthorized" });
+
+    const { postId, commentId, replyId } = req.params;
+    const { updatedContent } = req.body;
+
+    try {
+        const post = await Post.findById(postId);
+        const comment = post.comments.id(commentId);
+        const reply = comment.replies.id(replyId);
+
+        if (!post || !comment || !reply) return res.status(404).json({ success: false });
+
+        if (reply.user.toString() !== req.session.userId) {
+            return res.status(403).json({ success: false, error: "Unauthorized to edit this reply" });
+        }
+
+        reply.content = updatedContent;
+        post.markModified('comments');
+        await post.save();
+
+        res.json({ success: true, updatedReply: updatedContent });
+    } catch (err) {
+        console.error("Error editing reply:", err);
+        res.status(500).json({ success: false });
+    }
+});
+
+
+server.post('/reply-like/:postId/:commentId/:replyId', async (req, res) => {
+    if (!req.session.userId) {
+        return res.status(401).json({ error: "Unauthorized: You must be logged in." });
+    }
+    try {
+        const { postId, commentId, replyId } = req.params;
+        const userId = req.session.userId.toString();
+        const post = await Post.findById(postId);
+        if (!post) return res.status(404).json({ success: false, message: "Post not found" });
+
+        const comment = post.comments.id(commentId);
+        if (!comment) return res.status(404).json({ success: false, message: "Comment not found" });
+
+        const reply = comment.replies.id(replyId);
+        if (!reply) return res.status(404).json({ success: false, message: "Reply not found" });
+
+        reply.likes = reply.likes || [];
+        reply.dislikes = reply.dislikes || [];
+
+        let liked = false;
+        if (!reply.likes.includes(userId)) {
+            reply.likes.push(userId);
+            reply.dislikes = reply.dislikes.filter(id => id.toString() !== userId);
+            liked = true;
+        } else {
+            reply.likes = reply.likes.filter(id => id.toString() !== userId);
+        }
+
+        post.markModified('comments');
+        await post.save();
+
+        res.json({
+            success: true,
+            liked,
+            likesCount: reply.likes.length,
+            dislikesCount: reply.dislikes.length
+        });
+    } catch (err) {
+        console.error("Error liking reply:", err);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+server.post('/reply-dislike/:postId/:commentId/:replyId', async (req, res) => {
+    if (!req.session.userId) {
+        return res.status(401).json({ error: "Unauthorized: You must be logged in." });
+    }
+    try {
+        const { postId, commentId, replyId } = req.params;
+        const userId = req.session.userId.toString();
+        const post = await Post.findById(postId);
+        if (!post) return res.status(404).json({ success: false, message: "Post not found" });
+
+        const comment = post.comments.id(commentId);
+        if (!comment) return res.status(404).json({ success: false, message: "Comment not found" });
+
+        const reply = comment.replies.id(replyId);
+        if (!reply) return res.status(404).json({ success: false, message: "Reply not found" });
+
+        reply.likes = reply.likes || [];
+        reply.dislikes = reply.dislikes || [];
+
+        let disliked = false;
+        if (!reply.dislikes.includes(userId)) {
+            reply.dislikes.push(userId);
+            reply.likes = reply.likes.filter(id => id.toString() !== userId);
+            disliked = true;
+        } else {
+            reply.dislikes = reply.dislikes.filter(id => id.toString() !== userId);
+        }
+
+        post.markModified('comments');
+        await post.save();
+
+        res.json({
+            success: true,
+            disliked,
+            likesCount: reply.likes.length,
+            dislikesCount: reply.dislikes.length
+        });
+    } catch (err) {
+        console.error("Error disliking reply:", err);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+server.get('/about', (req, res) => {
+    const packages = [
+        { name: 'express', version: '4.18.2' },
+        { name: 'path', version: 'Built-in Node.js module' },
+        { name: 'express-session', version: '1.17.3' },
+        { name: 'bcryptjs', version: '2.4.3' },
+        { name: 'express-handlebars', version: '6.0.7' },
+        { name: 'moment', version: '2.29.4' },
+        { name: 'multer', version: '1.4.5-lts.1' },
+        { name: 'mongoose', version: '7.0.4' },
+        { name: 'util', version: 'Built-in Node.js module' }
+    ];
+
+    res.render('about', { packages });
+});
+
 module.exports = router;
-const port = process.env.PORT || 9090;
-server.listen(port, () => {
-    console.log(`🚀 Server running at http://localhost:${port}`);
+const PORT = process.env.PORT || 9090;
+server.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Server running on port ${PORT}`);
 });

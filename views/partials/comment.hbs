@@ -5,28 +5,24 @@
         </div>
         <span class="comment-username">{{user.username}}</span>
 
-        <!-- Toggle Menu for Comment Options -->
         <div class="comment-options">
             <button class="comment-options-btn" onclick="toggleCommentOptions('{{_id}}')">⋮</button>
             <div class="comment-options-menu" id="comment-options-{{_id}}" style="display: none;">
-                {{#if (eq user._id ../userId)}}
-                    <!-- If it's the logged-in user, show Edit & Delete -->
+                {{#if isOwner}}
                     <button class="edit-btn" onclick="openEditCommentModal('{{_id}}')">✏ Edit</button>
-                    <button class="delete-btn" onclick="deleteComment('{{../postId}}', '{{_id}}')">🗑 Delete</button>
+                    <button class="delete-btn" onclick="deleteComment('{{postId}}', '{{_id}}')">🗑 Delete</button>
+
                 {{else}}
-                    <!-- If it's NOT the logged-in user, show Report -->
                     <button class="report-btn" onclick="reportComment('{{_id}}')">⚠ Report</button>
                 {{/if}}
             </div>
         </div>
     </div>
 
-    <!-- Comment Content -->
     <div class="comment-caption">
         <p id="comment-text-{{_id}}" class="comment-text">{{content}}</p>
     </div>
 
-    <!-- Edit Comment Modal -->
     <div class="edit-comment-modal" id="edit-comment-modal-{{_id}}" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
@@ -43,7 +39,6 @@
         </div>
     </div>
 
-    <!-- Comment Actions -->
     <div class="comment-actions">
         <button id="like-btn-comment-{{_id}}"
             onclick="toggleLikeComment('{{postId}}', '{{_id}}')">👍 Like</button>
@@ -57,12 +52,21 @@
     </div>
 
     <div class="reply-section" id="reply-section-{{_id}}" style="display: none;">
-        <div class="add-reply">
-            <textarea id="reply-input-{{_id}}" placeholder="Write a reply..."></textarea>
-            <div class="reply-actions">
-                <button class="reply-btn" onclick="submitReply('{{_id}}')">📨 Reply</button>
-                <button class="cancel-btn" onclick="cancelReply('{{_id}}')">❌ Cancel</button>
-            </div>
+    <div class="add-reply">
+        <textarea id="reply-input-{{_id}}" placeholder="Write a reply..."></textarea>
+        <div class="reply-actions">
+            <button class="reply-btn" onclick="submitReply('{{_id}}')">📨 Reply</button>
+            <button class="cancel-btn" onclick="cancelReply('{{_id}}')">❌ Cancel</button>
         </div>
     </div>
+
+    <div class="replies" id="replies-{{_id}}">
+            {{#each replies}}
+                {{> reply this postId=../postId commentId=../_id isOwner=(eq user._id ../userProfile._id) }}
+            {{/each}}
+    </div>
+    
+</div>
+
+
 </div>

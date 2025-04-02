@@ -1,12 +1,20 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-
+/*
 mongoose.connect('mongodb://127.0.0.1:27017/tiktalk_db', { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log('✅ Connected to MongoDB at localhost:27017'))
     .catch(err => {
         console.error('❌ MongoDB Connection Error:', err);
         process.exit(1);
     });
+*/
+
+mongoose.connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+})
+.then(() => console.log('✅ Connected to MongoDB Atlas'))
+.catch(err => console.error('❌ MongoDB connection error:', err));
 
 module.exports = mongoose;
 
@@ -29,6 +37,7 @@ const postSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     caption: { type: String, required: false, default: "" },
     imageUrl: { type: String, required: false, default: '' },
+    postTag: { type: String, required: false, default: "" },
     comments: [
         {
             _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
@@ -36,6 +45,16 @@ const postSchema = new mongoose.Schema({
             content: { type: String, required: true },
             likes: { type: [mongoose.Schema.Types.ObjectId], ref: 'User', default: [] },
             dislikes: { type: [mongoose.Schema.Types.ObjectId], ref: 'User', default: [] },
+            replies: [
+                {
+                    _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
+                    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+                    content: { type: String, required: true },
+                    createdAt: { type: Date, default: Date.now },
+                    likes: { type: [mongoose.Schema.Types.ObjectId], ref: 'User', default: [] },
+                    dislikes: { type: [mongoose.Schema.Types.ObjectId], ref: 'User', default: [] }
+                }
+            ]
         }
     ],
     createdAt: { type: Date, default: Date.now },
@@ -92,6 +111,7 @@ const samplePosts = [
         username: "User1",
         caption: "Love this new recipe!",
         imageUrl: "https://hips.hearstapps.com/hmg-prod/images/190509-coconut-chicken-curry-157-1558039780.jpg?crop=1xw:0.8435280189423836xh;center,top&resize=1200:*",
+        postTag: "Food",
         comments: [
             { username: "Archer_User", content: "Looks Yummy!" },
             { username: "User2", content: "Can I have some?" },
@@ -104,6 +124,7 @@ const samplePosts = [
         username: "User2",
         caption: "Trying out this new coffee shop!",
         imageUrl: "https://upload.wikimedia.org/wikipedia/commons/e/e4/Latte_and_dark_coffee.jpg",
+        postTag: "Coffee",
         comments: [
             { username: "Archer_User", content: "That looks delicious!" },
             { username: "User5", content: "Where is this?" },
@@ -116,6 +137,7 @@ const samplePosts = [
         username: "User3",
         caption: "Beautiful sunset at the beach! 🌅",
         imageUrl: "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/17/e0/ce/85/sunset-beach.jpg?w=1200&h=-1&s=1",
+        postTag: "Travel",
         comments: [
             { username: "User1", content: "Wow! Where is this?" },
             { username: "User2", content: "Perfect vacation spot!" },
@@ -128,6 +150,7 @@ const samplePosts = [
         username: "User4",
         caption: "Game night with friends! 🎮",
         imageUrl: "https://storage-asset.msi.com/event/2022/cnd/i-want-it-all/images/reason-img-02.jpg",
+        postTag: "Gaming",
         comments: [
             { username: "Archer_User", content: "What game are you playing?" },
             { username: "User1", content: "Looks fun!" },
@@ -140,6 +163,7 @@ const samplePosts = [
         username: "User5",
         caption: "Freshly baked cookies! 🍪",
         imageUrl: "https://staticcookist.akamaized.net/wp-content/uploads/sites/22/2022/02/Chocolate-chip-cookies-14.jpg",
+        postTag: "Baking",
         comments: [
             { username: "User4", content: "Those look delicious!" },
             { username: "User2", content: "Recipe, please?" },
@@ -178,6 +202,7 @@ async function seedPosts() {
             user: userMap[post.username], // Link to actual User _id
             caption: post.caption,
             imageUrl: post.imageUrl,
+            postTag: post.postTag,
             comments: post.comments.map(comment => ({
                 user: userMap[comment.username] || null,
                 content: comment.content,
@@ -200,3 +225,4 @@ mongoose.connection.once('open', async () => {
 });
 
 module.exports = { mongoose, User, Post };
+

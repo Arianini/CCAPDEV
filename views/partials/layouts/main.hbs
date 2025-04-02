@@ -4,15 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CCAPDEV</title>
-    <link rel="stylesheet" href="styles/PageTemplate.css">
-    <link rel="stylesheet" href="styles/Home.css">
+    <link rel="stylesheet" href="/styles/PageTemplate.css">
+    <link rel="stylesheet" href="/styles/Home.css">
     
     <script src="https://kit.fontawesome.com/2616052655.js" crossorigin="anonymous"></script>
 </head>
 <body>
     <header>
         <div class="logo">
-            <img src="styles/images/logo.jpg" alt="Logo">
+            <img src="/styles/images/logo.jpg" alt="Logo">
         </div>
         <div class="search-bar">
             <input type="text" placeholder="Search...">
@@ -33,7 +33,7 @@
         <div id="menu-dropdown" class="menu-dropdown">
             <ul>
                 <li><a href="/settings" id="settings-link">Settings & Privacy </a></li>
-                <li><a href="#">About</a></li>
+                <li><a href="/about">About</a></li>
                 <li><a href="#">Help & Support</a></li>
                 <li><a href="/logout">Log Out</a></li>
             </ul>
@@ -42,9 +42,12 @@
 
     <div id="explore-content"></div>
     <nav>
-        <a href="/">Home</a>
-        <a href="/login">Login</a>
-        <a href="/explore">Explore</a>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/login">Login</a></li>
+            <li><a href="/explore">Explore</a></li>
+            <li><a href="/about">About</a></li>
+        </ul>
     </nav>
     
     <main>
@@ -71,6 +74,21 @@
                 }
             });
         });
+        //search script
+            document.addEventListener("DOMContentLoaded", function () {
+                const searchInput = document.querySelector(".search-bar input");
+                const searchButton = document.querySelector(".search-bar button");
+
+                if (searchButton && searchInput) {
+                    searchButton.addEventListener("click", () => {
+                        const query = searchInput.value.trim();
+                        if (!query) return;
+
+                        // Redirect to /search?q=query
+                        window.location.href = `/search?q=${encodeURIComponent(query)}`;
+                    });
+                }
+            });
     </script>
 </body>
 </html>

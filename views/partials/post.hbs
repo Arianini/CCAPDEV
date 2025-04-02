@@ -67,9 +67,18 @@
     </div>
 
     <!-- Display Comments -->
-    {{#each comments}}
-        {{> comment postId=../_id userId=../userProfile._id}}
+   {{#each comments}}
+    {{> comment 
+        _id=this._id 
+        postId=../_id 
+        user=this.user 
+        content=this.content 
+        likes=this.likes 
+        dislikes=this.dislikes 
+        isOwner=this.isOwner
+    }}
     {{/each}}
+
 </div>
 
 </div>

@@ -56,12 +56,12 @@
         <div class="left-block">
             <h1>Find Your Community!</h1>
             <div class="community-list">
-                <a href="#">Landscapes</a>
-                <a href="#">Food</a>
-                <a href="#">Artwork</a>
-                <a href="#">Travel</a>
-                <a href="#">Animals</a>
-            </div>   
+                <a href="/posts/Gaming">Gaming</a>
+                <a href="/posts/Food">Food</a>
+                <a href="/posts/Artwork">Artwork</a>
+                <a href="/posts/Travel">Travel</a>
+                <a href="/posts/Animals">Animals</a>
+            </div>
         </div>
 
         <div class="middle-block">
@@ -89,6 +89,9 @@
                     </div>
                     <textarea id="post-caption" placeholder="What's on your mind?"></textarea>
 
+                    <!-- Post Tag Input -->
+                    <input type="text" id="post-tag" placeholder="Enter post tag (e.g., Gaming, Tech, Food)" />
+                    
                     <!-- Emoji Picker -->
                     <div class="emoji-picker">
                         <span onclick="addEmoji('😀')">😀</span>
@@ -175,14 +178,13 @@
             }
         }
 
-        //added for delete comment
         function toggleCommentOptions(commentId) {
             console.log("Toggling menu for comment ID:", commentId);
             
             const allMenus = document.querySelectorAll(".comment-options-menu"); 
             allMenus.forEach(menu => {
                 if (menu.id !== `comment-options-${commentId}`) {
-                    menu.style.display = "none"; // Close other menus
+                    menu.style.display = "none";
                 }
             });
 
@@ -268,33 +270,51 @@
             }
         }
 
-        function saveEditedComment(commentId) {
-            alert("⚠ Error: Backend not implemented yet.");
-        }
+        async function saveEditedComment(commentId) {
+    const modal = document.getElementById(`edit-comment-modal-${commentId}`);
+    const textarea = document.getElementById(`edit-comment-input-${commentId}`);
+    const newContent = textarea.value.trim();
 
-        
-        function deleteComment(postId, commentId) {
-            if (!confirm("Are you sure you want to delete this comment?")) {
-                return;
+    if (!newContent) {
+        alert("Comment content cannot be empty!");
+        return;
+    }
+
+    const commentElement = document.getElementById(`comment-${commentId}`);
+    const postElement = commentElement.closest(".comments-section");
+    const postId = postElement?.id?.replace("comments-", "");
+
+    if (!postId) {
+        alert("Could not determine post ID.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`/edit-comment/${postId}/${commentId}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ updatedContent: newContent })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+ 
+            const commentText = document.getElementById(`comment-text-${commentId}`);
+            if (commentText) {
+                commentText.textContent = result.updatedComment;
             }
 
-            fetch(`/delete-comment/${postId}/${commentId}`, {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json" }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    document.getElementById(`comment-${commentId}`).remove();
-                    alert("✅ Comment deleted successfully.");
-                } else {
-                    alert(`⚠ Error: ${data.error}`);
-                }
-            })
-            .catch(error => {
-                console.error("Error deleting comment:", error);
-                alert("❌ An error occurred while trying to delete the comment.");
-            });
+            closeEditCommentModal(commentId);
+        } else {
+            alert(result.error || "Failed to edit comment.");
+        }
+            } catch (err) {
+                console.error("Error editing comment:", err);
+                alert("An error occurred while updating the comment.");
+            }
         }
 
         function toggleReplySection(commentId) {
@@ -304,20 +324,6 @@
                 return;
             }
             replySection.style.display = (replySection.style.display === "none" || replySection.style.display === "") ? "block" : "none";
-        }
-
-        function submitReply(commentId) {
-            const replyInput = document.getElementById(`reply-input-${commentId}`);
-            const replyText = replyInput.value.trim();
-
-            if (!replyText) {
-                alert("⚠ Reply cannot be empty!");
-                return;
-            }
-
-            alert(`📨 Fake reply submitted: "${replyText}"`); 
-            replyInput.value = "";
-            toggleReplySection(commentId); 
         }
 
         function cancelReply(commentId) {
@@ -351,6 +357,15 @@
         });
 
     });
+    </script>
+    <script>
+        document.querySelectorAll(".community-list a").forEach(link => {
+            link.addEventListener("click", async function (event) {
+                event.preventDefault(); // Remove if you want full page reload
+                window.location.href = this.href; // Navigate to the new page
+            });
+        });
+
     </script>
     <script src="/script.js"></script>
 </body>

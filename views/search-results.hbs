@@ -1,4 +1,5 @@
 <link rel="stylesheet" href="styles/PostTemplate.css">
+
 <h2>Search Results for "{{query}}"</h2>
 <div class="body-container">
     <div class="left-block">
@@ -6,24 +7,66 @@
     <div class="middle-block">
         <div class="post-feed">
             {{#if posts.length}}
-                <ul>
-                    {{#each posts}}
-                        <li>
-                            <h3>{{this.username}}</h3>
-                            <p>{{this.caption}}</p>
-                            {{#if this.imageUrl}}
-                                <img src="{{this.imageUrl}}" alt="Post image">
-                            {{/if}}
-                        </li>
-                    {{/each}}
-                </ul>
+                {{#each posts}}
+                    <div class="post-item" id="post-{{_id}}">
+                        <div class="post-header">
+                            <div class="user-icon">
+                                <img src="{{user.profilePic}}" alt="{{user.username}}'s Profile Picture">
+                            </div>
+                            <span class="username">{{user.username}}</span>
+                            <div class="post-options">
+                                <button class="options-btn" onclick="togglePostOptions('{{_id}}')">⋮</button>
+                                <div class="options-menu" id="options-menu-{{_id}}" style="display: none;">
+                                    {{#if isOwner}}
+                                        <button onclick="editPost('{{_id}}')">✏ Edit</button>
+                                        <button onclick="deletePost('{{_id}}')">🗑 Delete</button>
+                                    {{else}}
+                                        <button onclick="reportPost('{{_id}}')">⚠ Report</button>
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="post-caption">
+                            <p id="caption-text-{{_id}}" class="caption-text">{{caption}}{{#if edited}} <span class="edited-label">(Edited)</span>{{/if}}</p>
+                        </div>
+
+                        {{#if imageUrl}}
+                            <div class="post-content">
+                                <img src="{{imageUrl}}" alt="Post image">
+                            </div>
+                        {{/if}}
+
+                        <div class="post-actions">
+                            <div class="action-container">
+                                <button id="like-btn-post-{{_id}}" onclick="toggleLike('post', '{{_id}}')">👍 Like</button>
+                                <span class="count like-count">{{likesCount}}</span>
+                            </div>
+                            <div class="action-container">
+                                <button id="dislike-btn-post-{{_id}}" onclick="toggleDislike('post', '{{_id}}')">👎 Dislike</button>
+                                <span class="count dislike-count">{{dislikesCount}}</span>
+                            </div>
+                            <div class="action-container">
+                                <button id="comment-btn-{{_id}}" onclick="toggleComments('{{_id}}')">💬 Comment</button>
+                                <span class="count comment-count" id="comment-count-{{_id}}">{{commentsCount}}</span>
+                            </div>
+                        </div>
+
+                        <div class="comments-section" id="comments-{{_id}}" style="display: none;">
+                            <div class="add-comment">
+                                <textarea id="comment-input-{{_id}}" placeholder="Add a comment..."></textarea>
+                                <button onclick="addComment('{{_id}}')">Post Comment</button>
+                            </div>
+                            {{#each this.comments}}
+                                {{> comment postId=../_id userId=../userId}}
+                            {{/each}}
+                        </div>
+                    </div>
+                {{/each}}
             {{else}}
                 <p>No results found.</p>
             {{/if}}
-
             <a href="/">Go Back</a>
         </div>
     </div>
 </div>
-
-
