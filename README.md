@@ -53,8 +53,6 @@ npm install
 3. **Set up MongoDB**:
 
 - Update the connection string in `database.js` if needed.
-- Current:  
-  `mongodb+srv://eidentieng:password2434@tiktalkdb.r3ho1qq.mongodb.net/`
 
 4. **Run the app**:
 
